@@ -6,6 +6,7 @@ module HaskellWorks.Network.Ip
   , Ipv4NetMask(..)
   , Ipv4Block(..)
   , bitPower
+  , blockSize
   , isCanonical
   , splitBlock
   ) where
@@ -54,3 +55,6 @@ splitBlock (Ipv4Block (Ipv4Address b) (Ipv4NetMask m)) =
           , Ipv4Block (Ipv4Address (b + c)) halfMask
           )
     else Nothing
+
+blockSize :: Ipv4Block -> Int
+blockSize (Ipv4Block _ m) = 2 ^ bitPower m
