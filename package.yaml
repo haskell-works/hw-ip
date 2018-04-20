@@ -12,7 +12,7 @@ extra-source-files:
 library:
   source-dirs: src
   exposed-modules:
-  - HaskellWorks.Network.Ip
+  - HaskellWorks.Data.Network.Ip
   dependencies:
   - base >=4.7 && <5
 

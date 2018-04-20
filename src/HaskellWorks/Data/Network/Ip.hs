@@ -1,7 +1,7 @@
 {-# LANGUAGE BangPatterns               #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module HaskellWorks.Network.Ip
+module HaskellWorks.Data.Network.Ip
   ( Ipv4Address(..)
   , Ipv4NetMask(..)
   , Ipv4Block(..)
@@ -11,8 +11,8 @@ module HaskellWorks.Network.Ip
   , splitBlock
   ) where
 
-import           Data.Bits
-import           Data.Word
+import Data.Bits
+import Data.Word
 
 newtype Ipv4Address = Ipv4Address
   { unIpv4Address :: Word32
@@ -20,10 +20,10 @@ newtype Ipv4Address = Ipv4Address
 
 instance Show Ipv4Address where
   showsPrec _ (Ipv4Address w) =
-    (shows ((w `shiftR` 24) .&. 0xff)) . ('.':) .
-    (shows ((w `shiftR` 16) .&. 0xff)) . ('.':) .
-    (shows ((w `shiftR`  8) .&. 0xff)) . ('.':) .
-    (shows ((w            ) .&. 0xff))
+    shows ((w `shiftR` 24) .&. 0xff) . ('.':) .
+    shows ((w `shiftR` 16) .&. 0xff) . ('.':) .
+    shows ((w `shiftR`  8) .&. 0xff) . ('.':) .
+    shows ( w              .&. 0xff)
 
 newtype Ipv4NetMask = Ipv4NetMask
   { unIpv4NetMask :: Word8
@@ -45,16 +45,15 @@ isCanonical (Ipv4Block (Ipv4Address b) m) = ((b `shiftR` bitPower m) `shiftL` bi
 
 splitBlock :: Ipv4Block -> Maybe (Ipv4Block, Ipv4Block)
 splitBlock (Ipv4Block (Ipv4Address b) (Ipv4NetMask m)) =
-  if (m >= 0 && m < 32)
-    then
-      let !hm       = m + 1
-          !halfMask = Ipv4NetMask hm
-          !c        = fromIntegral ((0x100000000 :: Word64) `shiftR` fromIntegral (m + 1))
-      in  Just
-          ( Ipv4Block (Ipv4Address  b     ) halfMask
-          , Ipv4Block (Ipv4Address (b + c)) halfMask
-          )
-    else Nothing
+  if m >= 0 && m < 32
+    then  let !hm       = m + 1
+              !halfMask = Ipv4NetMask hm
+              !c        = fromIntegral ((0x100000000 :: Word64) `shiftR` fromIntegral (m + 1))
+          in  Just
+              ( Ipv4Block (Ipv4Address  b     ) halfMask
+              , Ipv4Block (Ipv4Address (b + c)) halfMask
+              )
+    else  Nothing
 
 blockSize :: Ipv4Block -> Int
 blockSize (Ipv4Block _ m) = 2 ^ bitPower m
