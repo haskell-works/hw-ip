@@ -8,8 +8,15 @@ maintainer: newhoggy@gmail.com
 copyright: 2017 John Ky
 license: BSD3
 github: haskell-works/hw-ip
+
 extra-source-files:
 - README.md
+
+dependencies:
+  - attoparsec
+  - generic-lens
+  - hw-bits
+  - text
 
 library:
   source-dirs: src
