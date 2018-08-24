@@ -11,11 +11,16 @@ module HaskellWorks.Data.Network.Ip
   , splitBlock
   ) where
 
+import Control.Monad
 import Data.Word
 import GHC.Generics
 import HaskellWorks.Data.Bits.BitWise
 
-import qualified HaskellWorks.Data.Network.Ip.Type as Z
+import qualified Data.Attoparsec.Text                     as AP
+import qualified Data.Text                                as T
+import qualified HaskellWorks.Data.Network.Ip.Internal    as I
+import qualified HaskellWorks.Data.Network.Ip.Parser.Text as APT
+import qualified HaskellWorks.Data.Network.Ip.Type        as Z
 
 bitPower :: Z.Ipv4NetMask -> Word64
 bitPower (Z.Ipv4NetMask m) = fromIntegral (32 - m)
@@ -37,3 +42,6 @@ splitBlock (Z.Ipv4Block (Z.Ipv4Address b) (Z.Ipv4NetMask m)) =
 
 blockSize :: Z.Ipv4Block -> Int
 blockSize (Z.Ipv4Block _ m) = 2 ^ bitPower m
+
+textToMaybeIpv4Address :: T.Text -> Maybe Z.Ipv4Address
+textToMaybeIpv4Address t = join $ AP.maybeResult <$> AP.parseWith (return mempty) APT.ipv4Address t
