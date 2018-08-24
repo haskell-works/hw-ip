@@ -20,8 +20,6 @@ dependencies:
 
 library:
   source-dirs: src
-  exposed-modules:
-  - HaskellWorks.Data.Network.Ip
   dependencies:
   - base >=4.7 && <5
 

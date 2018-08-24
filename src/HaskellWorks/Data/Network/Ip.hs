@@ -9,6 +9,7 @@ module HaskellWorks.Data.Network.Ip
   , blockSize
   , isCanonical
   , splitBlock
+  , textToMaybeIpv4Address
   ) where
 
 import Control.Monad
