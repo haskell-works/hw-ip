@@ -17,6 +17,11 @@ spec = describe "HaskellWorks.HUnit.IpSpec" $ do
       show (Ipv4Address 0x0000ff00) === "0.0.255.0"
       show (Ipv4Address 0x00ff0000) === "0.255.0.0"
       show (Ipv4Address 0xff000000) === "255.0.0.0"
+    it "should implement read" $ require $ property $ do
+      read "1.2.3.4"      === Ipv4Address 0x01020304
+      read "10.20.30.40"  === Ipv4Address 0x0a141e28
+      read "1.2.3.12"     === Ipv4Address 0x0102030c
+      read "1.2.3.160"    === Ipv4Address 0x010203a0
   describe "Ipv4Block" $ do
     it "should implement show" $ require $ property $ do
       show (Ipv4Block (Ipv4Address 0x000000ff) (Ipv4NetMask 32)) === "0.0.0.255/32"

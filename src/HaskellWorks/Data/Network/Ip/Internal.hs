@@ -27,9 +27,11 @@ infixl 2 #<*>#
 octet :: AP.Parser Word8
 octet = ((d12 #<*># d5 ) #<*># d05)
   <|>   ((d12 #<*># d04) #<*># d09)
+  <|>   ((d1  #<*># d09) #<*># d09)
   <|>   ( d19 #<*># d09)
   <|>   d09
   where d5  = fromIntegral . (+ (-48)) . ord <$> AP.satisfy (== '5')
+        d1  = fromIntegral . (+ (-48)) . ord <$> AP.satisfy (== '1')
         d04 = fromIntegral . (+ (-48)) . ord <$> AP.satisfy (\c -> c >= '0' && c <= '4')
         d05 = fromIntegral . (+ (-48)) . ord <$> AP.satisfy (\c -> c >= '0' && c <= '5')
         d09 = fromIntegral . (+ (-48)) . ord <$> AP.satisfy (\c -> c >= '0' && c <= '9')
