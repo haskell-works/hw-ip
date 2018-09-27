@@ -10,6 +10,8 @@ module HaskellWorks.Data.Network.Ip
   , isCanonical
   , splitBlock
   , textToMaybeIpv4Address
+  , ipv4AddressToString
+  , ipv4AddressToText
   ) where
 
 import Control.Monad
@@ -46,3 +48,9 @@ blockSize (Z.Ipv4Block _ m) = 2 ^ bitPower m
 
 textToMaybeIpv4Address :: T.Text -> Maybe Z.Ipv4Address
 textToMaybeIpv4Address t = join $ AP.maybeResult <$> AP.parseWith (return mempty) APT.ipv4Address t
+
+ipv4AddressToString :: Z.Ipv4Address -> String
+ipv4AddressToString = show
+
+ipv4AddressToText :: Z.Ipv4Address -> T.Text
+ipv4AddressToText = T.pack . ipv4AddressToString
