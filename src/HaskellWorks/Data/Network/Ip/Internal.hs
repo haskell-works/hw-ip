@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module HaskellWorks.Data.Network.Ip.Internal where
 
 import Control.Applicative
