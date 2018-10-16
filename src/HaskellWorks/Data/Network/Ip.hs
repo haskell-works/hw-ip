@@ -12,8 +12,8 @@ module HaskellWorks.Data.Network.Ip
   , textToMaybeIpv4Address
   , ipv4AddressToString
   , ipv4AddressToText
-  , startIpv4Address
-  , stopIpv4Address
+  , firstIpv4Address
+  , lastIpv4Address
   ) where
 
 import Control.Monad
@@ -48,11 +48,11 @@ splitBlock (Z.Ipv4Block (Z.Ipv4Address b) (Z.Ipv4NetMask m)) =
 blockSize :: Z.Ipv4Block -> Int
 blockSize (Z.Ipv4Block _ m) = 2 ^ bitPower m
 
-startIpv4Address :: Z.Ipv4Block -> Z.Ipv4Address
-startIpv4Address (Z.Ipv4Block base _) = base
+firstIpv4Address :: Z.Ipv4Block -> Z.Ipv4Address
+firstIpv4Address (Z.Ipv4Block base _) = base
 
-stopIpv4Address :: Z.Ipv4Block -> Z.Ipv4Address
-stopIpv4Address b@(Z.Ipv4Block (Z.Ipv4Address base) _) = Z.Ipv4Address (base + fromIntegral (blockSize b) - 1)
+lastIpv4Address :: Z.Ipv4Block -> Z.Ipv4Address
+lastIpv4Address b@(Z.Ipv4Block (Z.Ipv4Address base) _) = Z.Ipv4Address (base + fromIntegral (blockSize b) - 1)
 
 textToMaybeIpv4Address :: T.Text -> Maybe Z.Ipv4Address
 textToMaybeIpv4Address t = join $ AP.maybeResult <$> AP.parseWith (return mempty) APT.ipv4Address t
