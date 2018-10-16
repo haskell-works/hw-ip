@@ -16,25 +16,18 @@ fourOctetsToWord32 a b c d =
    fromIntegral d
 {-# INLINE fourOctetsToWord32 #-}
 
-infixl 2 #<*>#
+infixl 4 #<*>#
 
 (#<*>#) :: AP.Parser Word8 -> AP.Parser Word8 -> AP.Parser Word8
 (#<*>#) pa pb = paste <$> pa <*> pb
   where paste a b = a * 10 + b
 
 octet :: AP.Parser Word8
-octet = ((d12 #<*># d5 ) #<*># d05)
-  <|>   ((d12 #<*># d04) #<*># d09)
-  <|>   ((d1  #<*># d09) #<*># d09)
-  <|>   ( d19 #<*># d09)
-  <|>   d09
-  where d5  = fromIntegral . (+ (-48)) . ord <$> AP.satisfy (== '5')
-        d1  = fromIntegral . (+ (-48)) . ord <$> AP.satisfy (== '1')
-        d04 = fromIntegral . (+ (-48)) . ord <$> AP.satisfy (\c -> c >= '0' && c <= '4')
-        d05 = fromIntegral . (+ (-48)) . ord <$> AP.satisfy (\c -> c >= '0' && c <= '5')
-        d09 = fromIntegral . (+ (-48)) . ord <$> AP.satisfy (\c -> c >= '0' && c <= '9')
-        d19 = fromIntegral . (+ (-48)) . ord <$> AP.satisfy (\c -> c >= '1' && c <= '9')
-        d12 = fromIntegral . (+ (-48)) . ord <$> AP.satisfy (\c -> c >= '1' && c <= '2')
+octet = (ds 1 2 #<*>#  d 5  ) #<*># ds 0 5
+  <|>   (ds 1 2 #<*># ds 0 4) #<*># ds 0 9
+  <|>   ( d 1   #<*># ds 0 9) #<*># ds 0 9
+  <|>    ds 1 9 #<*># ds 0 9
+  <|>    ds 0 9
 
 ipv4Address :: AP.Parser Word32
 ipv4Address = fourOctetsToWord32
@@ -45,3 +38,22 @@ ipv4Address = fourOctetsToWord32
 
 whitespace :: AP.Parser ()
 whitespace = void $ many (AP.satisfy isSpace)
+
+ipv4NetMask :: AP.Parser Word8
+ipv4NetMask =  d 3   #<*># ds 0 2
+  <|>          d 2   #<*># ds 0 9
+  <|>          d 1   #<*># ds 0 9
+  <|>         ds 0 9
+
+d :: Int -> AP.Parser Word8
+d c      = fromIntegral . (+ (-48)) . ord <$> AP.satisfy (== chr (c + 48))
+
+ds :: Int -> Int -> AP.Parser Word8
+ds c1 c2 = fromIntegral . (+ (-48)) . ord <$> AP.satisfy (\c -> c >= chr (c1 + 48) && c <= chr (c2 + 48))
+
+ipv4Block :: AP.Parser (Word32, Word8)
+ipv4Block = do
+  addr <- ipv4Address
+  _    <- AP.char '/'
+  mask <- ipv4NetMask
+  return (addr, mask)
