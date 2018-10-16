@@ -45,3 +45,12 @@ ipv4Address = fourOctetsToWord32
 
 whitespace :: AP.Parser ()
 whitespace = void $ many (AP.satisfy isSpace)
+
+ipv4Mask :: AP.Parser Word8
+ipv4Mask = octet
+
+ipv4Block :: AP.Parser (Word32, Word8)
+ipv4Block = do
+  addr <- ipv4Address <* AP.char '/'
+  mask <- ipv4Mask
+  return (addr, mask)
