@@ -2,6 +2,7 @@
 {-# LANGUAGE DuplicateRecordFields      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs               #-}
+{-# LANGUAGE OverloadedStrings          #-}
 
 module HaskellWorks.Data.Network.Ip.Type
   ( Ipv4Address(..)
@@ -49,3 +50,12 @@ data Ipv4Block = Ipv4Block
 
 instance Show Ipv4Block where
   showsPrec _ (Ipv4Block b (Ipv4NetMask m)) = shows b . ('/':) . shows m
+
+instance Read Ipv4Block where
+  readsPrec :: Int -> String -> [(Ipv4Block, String)]
+  readsPrec _ s = case AP.parseWith (return mempty) (I.whitespace *> I.ipv4Block) (T.pack s) of
+    Just result -> case result of
+      AP.Done i (a, m) -> [(Ipv4Block (Ipv4Address a) (Ipv4NetMask m), T.unpack i)]
+      AP.Partial _     -> []
+      AP.Fail a b c    -> []
+    Nothing -> []
