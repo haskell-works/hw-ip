@@ -9,6 +9,7 @@ import Hedgehog
 import Test.Hspec
 
 import qualified Data.Attoparsec.Text as AP
+import qualified Text.Read as TR
 import qualified Data.Text as T
 import qualified Hedgehog.Gen as G
 import qualified Hedgehog.Range as R
@@ -57,8 +58,8 @@ spec = describe "HaskellWorks.HUnit.IpSpec" $ do
       show (lastIpv4Address  $ Ipv4Block (Ipv4Address 0xff000000) (Ipv4NetMask 21)) === "255.0.7.255"
 
     it "should implement read" $ require $ property $ do
-      read "1.2.3.4/8"  === Ipv4Block (Ipv4Address 0x01020304) (Ipv4NetMask 8)
-      read "1.2.3.4/0"  === Ipv4Block (Ipv4Address 0x01020304) (Ipv4NetMask 0)
+      read "1.0.0.0/8"  === Ipv4Block (Ipv4Address 0x01000000) (Ipv4NetMask 8)
+      read "1.2.0.0/16" === Ipv4Block (Ipv4Address 0x01020000) (Ipv4NetMask 16)
       read "1.2.3.4/32" === Ipv4Block (Ipv4Address 0x01020304) (Ipv4NetMask 32)
 
     it "should implement splitBlock" $ require $ property $ do
@@ -70,3 +71,8 @@ spec = describe "HaskellWorks.HUnit.IpSpec" $ do
     it "should implement blockSize" $ require $ property $ do
       blockSize (Ipv4Block (Ipv4Address 0x00000000) (Ipv4NetMask 32)) === 1
       blockSize (Ipv4Block (Ipv4Address 0x00000000) (Ipv4NetMask  0)) === 0x100000000
+
+    it "should validate masks" $ require $ property $ do
+      (TR.readMaybe "1.2.3.4/8"  :: Maybe Ipv4Block) === Nothing
+      (TR.readMaybe "1.2.3.4/0"  :: Maybe Ipv4Block) === Nothing
+      (TR.readMaybe "1.2.3.4/32" :: Maybe Ipv4Block) === (Just $ Ipv4Block (Ipv4Address 0x01020304) (Ipv4NetMask 32))
