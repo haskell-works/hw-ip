@@ -10,11 +10,14 @@ module HaskellWorks.Data.Network.Ip.Type
   , Ipv4Block(..)
   ) where
 
+import Data.Maybe
 import Data.Word
 import GHC.Generics
 import HaskellWorks.Data.Bits.BitWise
+import Control.Monad
 
 import qualified Data.Attoparsec.Text                  as AP
+import qualified Data.Bits                             as B
 import qualified Data.Text                             as T
 import qualified HaskellWorks.Data.Network.Ip.Internal as I
 import qualified Text.ParserCombinators.ReadPrec       as RP
@@ -55,7 +58,18 @@ instance Read Ipv4Block where
   readsPrec :: Int -> String -> [(Ipv4Block, String)]
   readsPrec _ s = case AP.parseWith (return mempty) (I.whitespace *> I.ipv4Block) (T.pack s) of
     Just result -> case result of
-      AP.Done i (a, m) -> [(Ipv4Block (Ipv4Address a) (Ipv4NetMask m), T.unpack i)]
+      AP.Done i (a, m) ->
+        case validIpv4Block $ Ipv4Block (Ipv4Address a) (Ipv4NetMask m) of
+          Just b  -> [(b, T.unpack i)]
+          Nothing -> []
       AP.Partial _     -> []
       AP.Fail a b c    -> []
     Nothing -> []
+
+-- shift the address left by the amount of mask bits to reveal only host bits
+-- if any bits left are non-zero, then the mask is not big enough
+validIpv4Block :: Ipv4Block -> Maybe Ipv4Block
+validIpv4Block b@(Ipv4Block (Ipv4Address word) (Ipv4NetMask mask)) =
+  if word `B.shiftL` fromIntegral mask `B.xor` 0 == 0
+    then pure b
+    else Nothing
