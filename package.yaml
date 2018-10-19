@@ -1,9 +1,12 @@
 name: hw-ip
-version: '0.4.0'
+version: '0.4.1'
 synopsis: Library for manipulating IP addresses and CIDR blocks
 description: Please see README.md
 category: Network
-author: John
+author:
+  - John Ky
+  - David Turnbull
+  - Jian Wan
 maintainer: newhoggy@gmail.com
 copyright: 2018 John Ky
 license: BSD3
