@@ -12,6 +12,7 @@ module HaskellWorks.Data.Network.Ip
   , textToMaybeIpv4Address
   , ipv4AddressToString
   , ipv4AddressToText
+  , ipv4AddressToWords
   , firstIpv4Address
   , lastIpv4Address
   ) where
@@ -55,10 +56,18 @@ lastIpv4Address :: Z.Ipv4Block -> Z.Ipv4Address
 lastIpv4Address b@(Z.Ipv4Block (Z.Ipv4Address base) _) = Z.Ipv4Address (base + fromIntegral (blockSize b) - 1)
 
 textToMaybeIpv4Address :: T.Text -> Maybe Z.Ipv4Address
-textToMaybeIpv4Address t = join $ AP.maybeResult <$> AP.parseWith (return mempty) APT.ipv4Address t
+textToMaybeIpv4Address t = AP.maybeResult =<< AP.parseWith (return mempty) APT.ipv4Address t
 
 ipv4AddressToString :: Z.Ipv4Address -> String
 ipv4AddressToString = show
 
 ipv4AddressToText :: Z.Ipv4Address -> T.Text
 ipv4AddressToText = T.pack . ipv4AddressToString
+
+ipv4AddressToWords :: Z.Ipv4Address -> (Word8, Word8, Word8, Word8)
+ipv4AddressToWords (Z.Ipv4Address w) =
+  ( fromIntegral (w .>. 24) .&. 0xff
+  , fromIntegral (w .>. 16) .&. 0xff
+  , fromIntegral (w .>.  8) .&. 0xff
+  , fromIntegral (w         .&. 0xff)
+  )
