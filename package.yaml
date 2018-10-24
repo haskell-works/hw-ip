@@ -1,5 +1,5 @@
 name: hw-ip
-version: '0.4.1'
+version: '0.4.2'
 synopsis: Library for manipulating IP addresses and CIDR blocks
 description: Please see README.md
 category: Network
