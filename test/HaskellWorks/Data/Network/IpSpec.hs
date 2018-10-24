@@ -36,6 +36,9 @@ spec = describe "HaskellWorks.HUnit.IpSpec" $ do
       read "1.2.3.12"     === Ipv4Address 0x0102030c
       read "1.2.3.160"    === Ipv4Address 0x010203a0
 
+    it "should be possible to extract the octets" $ require $ property $ do
+      ipv4AddressToWords (Ipv4Address 0x01020304) === (1, 2, 3, 4)
+
   describe "Ipv4Block" $ do
     it "should implement show" $ require $ property $ do
       show (Ipv4Block (Ipv4Address 0x000000ff) (Ipv4NetMask 32)) === "0.0.0.255/32"
