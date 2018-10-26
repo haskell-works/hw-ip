@@ -15,6 +15,7 @@ module HaskellWorks.Data.Network.Ip
   , ipv4AddressToWords
   , firstIpv4Address
   , lastIpv4Address
+  , ipv4AddressesToBlock
   ) where
 
 import Control.Monad
@@ -23,6 +24,7 @@ import GHC.Generics
 import HaskellWorks.Data.Bits.BitWise
 
 import qualified Data.Attoparsec.Text                     as AP
+import qualified Data.Bits                                as B
 import qualified Data.Text                                as T
 import qualified HaskellWorks.Data.Network.Ip.Internal    as I
 import qualified HaskellWorks.Data.Network.Ip.Parser.Text as APT
@@ -71,3 +73,48 @@ ipv4AddressToWords (Z.Ipv4Address w) =
   , fromIntegral (w .>.  8) .&. 0xff
   , fromIntegral (w         .&. 0xff)
   )
+
+ipv4AddressesToBlock :: [Z.Ipv4Address] -> [Z.Ipv4Block]
+ipv4AddressesToBlock ips = do
+  let tree = buildIpv4AddressTree ips
+  go tree 0 0
+  where
+    go :: IPTree -> Word8 -> Word32 -> [Z.Ipv4Block]
+    go Leaf _ _ = []
+    go root@(Node left right) level base =
+      if findLargestCompleteTree root then
+        [Z.Ipv4Block (Z.Ipv4Address base) (Z.Ipv4NetMask level)]
+      else do
+        let rightBase = 0x80000000 `B.shiftR` fromIntegral level .|. base
+        go left (level + 1) base ++ go right (level + 1) rightBase
+
+data IPTree = Leaf | Node IPTree IPTree deriving (Show, Eq)
+
+addIpv4AddressToTree :: IPTree -> Z.Ipv4Address -> IPTree
+addIpv4AddressToTree Leaf ipv4 = addIpv4AddressToTree (Node Leaf Leaf) ipv4
+addIpv4AddressToTree root ipv4@(Z.Ipv4Address w) =
+  go root 0 w
+    where
+      go :: IPTree -> Int -> Word32 -> IPTree
+      go Leaf level w = go (Node Leaf Leaf) level w
+      go (Node left right) level w =
+        if level < 32 then
+          if B.testBit w (fromIntegral $ 31 - level) then
+            Node left (go right (level + 1) w)
+          else
+            Node (go left (level + 1) w) right
+        else
+          Node Leaf Leaf
+
+buildIpv4AddressTree :: [Z.Ipv4Address] -> IPTree
+buildIpv4AddressTree = foldl addIpv4AddressToTree Leaf
+
+findLargestCompleteTree :: IPTree -> Bool
+findLargestCompleteTree Leaf                   = True
+findLargestCompleteTree (Node Leaf (Node _ _)) = False
+findLargestCompleteTree (Node (Node _ _) Leaf) = False
+findLargestCompleteTree (Node l r)             = findLargestCompleteTree l && findLargestCompleteTree r
+
+maxHeight :: IPTree -> Int
+maxHeight Leaf              = 0
+maxHeight (Node left right) = 1 + max (maxHeight left) (maxHeight right)
