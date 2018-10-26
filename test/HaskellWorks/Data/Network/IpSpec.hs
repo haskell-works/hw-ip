@@ -83,7 +83,7 @@ spec = describe "HaskellWorks.HUnit.IpSpec" $ do
     it "should collapse blocks" $ require $ property $ do
       let ipv4addresses1 = read <$> ["1.2.3.4", "4.3.2.1"]
       let ipv4blocks1 =    read <$> ["1.2.3.4/32", "4.3.2.1/32"]
-      ipv4AddressesToBlock ipv4addresses1 === ipv4blocks1
+      ipv4AddressesToBlocks ipv4addresses1 === ipv4blocks1
       let ipv4addresses2 = read <$> ["1.2.3.3", "1.2.3.0", "1.2.3.1", "1.2.3.2"]
       let ipv4blocks2 =    read <$> ["1.2.3.0/30"]
-      ipv4AddressesToBlock ipv4addresses2 === ipv4blocks2
+      ipv4AddressesToBlocks ipv4addresses2 === ipv4blocks2

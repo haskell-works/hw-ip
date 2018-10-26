@@ -10,12 +10,12 @@ module HaskellWorks.Data.Network.Ip
   , isCanonical
   , splitBlock
   , textToMaybeIpv4Address
+  , ipv4AddressesToBlocks
   , ipv4AddressToString
   , ipv4AddressToText
   , ipv4AddressToWords
   , firstIpv4Address
   , lastIpv4Address
-  , ipv4AddressesToBlock
   ) where
 
 import Control.Monad
@@ -74,8 +74,8 @@ ipv4AddressToWords (Z.Ipv4Address w) =
   , fromIntegral (w         .&. 0xff)
   )
 
-ipv4AddressesToBlock :: [Z.Ipv4Address] -> [Z.Ipv4Block]
-ipv4AddressesToBlock ips = do
+ipv4AddressesToBlocks :: [Z.Ipv4Address] -> [Z.Ipv4Block]
+ipv4AddressesToBlocks ips = do
   let tree = buildIpv4AddressTree ips
   go tree 0 0 []
   where

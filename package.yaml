@@ -17,6 +17,7 @@ extra-source-files:
 
 dependencies:
   - attoparsec
+  - deepseq
   - generic-lens
   - hw-bits
   - text
@@ -40,3 +41,13 @@ tests:
     - hw-hspec-hedgehog
     - hw-ip
     - hspec
+
+  hw-ip-space:
+    main:               Space.hs
+    source-dirs:        weigh
+    dependencies:
+      - base
+      - hw-ip
+      - weigh                 >= 0.0.6      && < 0.1
+    verbatim:
+      build-tool-depends: hspec-discover:hspec-discover

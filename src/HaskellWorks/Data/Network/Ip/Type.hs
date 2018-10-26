@@ -1,8 +1,8 @@
+{-# LANGUAGE DeriveAnyClass             #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DuplicateRecordFields      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs               #-}
-{-# LANGUAGE OverloadedStrings          #-}
 
 module HaskellWorks.Data.Network.Ip.Type
   ( Ipv4Address(..)
@@ -10,11 +10,12 @@ module HaskellWorks.Data.Network.Ip.Type
   , Ipv4Block(..)
   ) where
 
+import Control.DeepSeq
+import Control.Monad
 import Data.Maybe
 import Data.Word
 import GHC.Generics
 import HaskellWorks.Data.Bits.BitWise
-import Control.Monad
 
 import qualified Data.Attoparsec.Text                  as AP
 import qualified Data.Bits                             as B
@@ -24,7 +25,7 @@ import qualified Text.ParserCombinators.ReadPrec       as RP
 
 newtype Ipv4Address = Ipv4Address
   { word :: Word32
-  } deriving (Enum, Eq, Ord, Generic)
+  } deriving (Enum, Eq, Ord, Generic, NFData)
 
 instance Show Ipv4Address where
   showsPrec _ (Ipv4Address w) =
@@ -44,12 +45,12 @@ instance Read Ipv4Address where
 
 newtype Ipv4NetMask = Ipv4NetMask
   { word :: Word8
-  } deriving (Enum, Eq, Ord, Show, Generic)
+  } deriving (Enum, Eq, Ord, Show, Generic, NFData)
 
 data Ipv4Block = Ipv4Block
   { base :: !Ipv4Address
   , mask :: !Ipv4NetMask
-  } deriving (Eq, Ord)
+  } deriving (Eq, Ord, Generic, NFData)
 
 instance Show Ipv4Block where
   showsPrec _ (Ipv4Block b (Ipv4NetMask m)) = shows b . ('/':) . shows m
