@@ -77,21 +77,20 @@ ipv4AddressToWords (Z.Ipv4Address w) =
 ipv4AddressesToBlock :: [Z.Ipv4Address] -> [Z.Ipv4Block]
 ipv4AddressesToBlock ips = do
   let tree = buildIpv4AddressTree ips
-  go tree 0 0
+  go tree 0 0 []
   where
-    go :: IPTree -> Word8 -> Word32 -> [Z.Ipv4Block]
-    go Leaf _ _ = []
+    go :: IPTree -> Word8 -> Word32 -> [Z.Ipv4Block] -> [Z.Ipv4Block]
+    go Leaf _ _ = id
     go root@(Node left right) level base =
       if findLargestCompleteTree root then
-        [Z.Ipv4Block (Z.Ipv4Address base) (Z.Ipv4NetMask level)]
+        ((Z.Ipv4Block (Z.Ipv4Address base) (Z.Ipv4NetMask level)) :)
       else do
         let rightBase = 0x80000000 `B.shiftR` fromIntegral level .|. base
-        go left (level + 1) base ++ go right (level + 1) rightBase
+        go left (level + 1) base . go right (level + 1) rightBase
 
 data IPTree = Leaf | Node IPTree IPTree deriving (Show, Eq)
 
 addIpv4AddressToTree :: IPTree -> Z.Ipv4Address -> IPTree
-addIpv4AddressToTree Leaf ipv4 = addIpv4AddressToTree (Node Leaf Leaf) ipv4
 addIpv4AddressToTree root ipv4@(Z.Ipv4Address w) =
   go root 0 w
     where
