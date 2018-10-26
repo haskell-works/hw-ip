@@ -1,5 +1,6 @@
 module Main where
 
+import Control.DeepSeq
 import Weigh
 
 import qualified HaskellWorks.Data.Network.Ip as I
@@ -15,8 +16,13 @@ main = do
   mainWith $ do
     setColumns [Case, Allocated, Max, Live, GCs]
     sequence_
-      [ action "collapse to blocks" $ do
+      [ action "tree" $ do
           ipv4s <- loadIpv4Addresses "data/bench/akamai.txt"
-          pure $ I.ipv4AddressesToBlocks ipv4s
+          let tree = I.buildIpv4AddressTree ipv4s
+          pure $ force tree
+      , action "collapse to blocks" $ do
+          ipv4s <- loadIpv4Addresses "data/bench/akamai.txt"
+          let blocks = I.ipv4AddressesToBlocks ipv4s
+          pure $ force blocks
       ]
   return ()

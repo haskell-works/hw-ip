@@ -1,4 +1,6 @@
 {-# LANGUAGE BangPatterns          #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 
 module HaskellWorks.Data.Network.Ip
@@ -16,8 +18,10 @@ module HaskellWorks.Data.Network.Ip
   , ipv4AddressToWords
   , firstIpv4Address
   , lastIpv4Address
+  , buildIpv4AddressTree
   ) where
 
+import Control.DeepSeq
 import Control.Monad
 import Data.Word
 import GHC.Generics
@@ -88,7 +92,7 @@ ipv4AddressesToBlocks ips = do
         let rightBase = 0x80000000 `B.shiftR` fromIntegral level .|. base
         go left (level + 1) base . go right (level + 1) rightBase
 
-data IPTree = Leaf | Node IPTree IPTree deriving (Show, Eq)
+data IPTree = Leaf | Node IPTree IPTree deriving (Show, Eq, Generic, NFData)
 
 addIpv4AddressToTree :: IPTree -> Z.Ipv4Address -> IPTree
 addIpv4AddressToTree root ipv4@(Z.Ipv4Address w) =
