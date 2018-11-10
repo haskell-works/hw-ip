@@ -19,16 +19,24 @@ module HaskellWorks.Data.Network.Ip
   , firstIpv4Address
   , lastIpv4Address
   , buildIpv4AddressTree
+  , collapseIpv4Blocks
+  , collapseIpv4Blocks'
   ) where
 
 import Control.DeepSeq
 import Control.Monad
+import Control.Monad.ST
+import Data.STRef
 import Data.Word
 import GHC.Generics
 import HaskellWorks.Data.Bits.BitWise
 
 import qualified Data.Attoparsec.Text                     as AP
 import qualified Data.Bits                                as B
+import qualified Data.HashTable.Class                     as H
+import qualified Data.HashTable.ST.Cuckoo                 as HC
+import qualified Data.List                                as DL
+import qualified Data.Map.Strict                          as M
 import qualified Data.Text                                as T
 import qualified HaskellWorks.Data.Network.Ip.Internal    as I
 import qualified HaskellWorks.Data.Network.Ip.Parser.Text as APT
@@ -121,3 +129,58 @@ findLargestCompleteTree (Node l r)             = findLargestCompleteTree l && fi
 maxHeight :: IPTree -> Int
 maxHeight Leaf              = 0
 maxHeight (Node left right) = 1 + max (maxHeight left) (maxHeight right)
+
+collapseIpv4Blocks :: [Z.Ipv4Block] -> [Z.Ipv4Block]
+collapseIpv4Blocks tomerge =
+  skipOverlapped . DL.sort $ go M.empty tomerge
+  where
+    go :: M.Map Word32 Z.Ipv4Block -> [Z.Ipv4Block] -> [Z.Ipv4Block]
+    go m [] = snd <$> M.toList m
+    go m (b:bs) =
+      let superB@(Z.Ipv4Block (Z.Ipv4Address key) _) = superBlock b
+      in case m M.!? key of
+        Nothing         -> go (M.insert key b m) bs
+        Just x | x /= b -> go (M.delete key m) (superB : bs)
+        _               -> go m bs
+    superBlock (Z.Ipv4Block (Z.Ipv4Address w32) (Z.Ipv4NetMask m)) =
+      Z.Ipv4Block (Z.Ipv4Address (w32 B..&. (0xFFFFFFFF `B.shiftL` fromIntegral (32 - (m - 1))))) (Z.Ipv4NetMask (m - 1))
+    skipOverlapped [] = []
+    skipOverlapped [b] = [b]
+    skipOverlapped (b1:b2:bs) =
+      if lastIpv4Address b1 >= lastIpv4Address b2 then
+        skipOverlapped (b1:bs)
+      else
+        b1 : skipOverlapped (b2:bs)
+
+type HashTable s k v = HC.HashTable s k v
+collapseIpv4Blocks' :: [Z.Ipv4Block] -> [Z.Ipv4Block]
+collapseIpv4Blocks' tomerge = do
+  let results = runST $ do
+                  subnets <- H.new
+                  go subnets tomerge
+                  H.toList subnets
+
+  skipOverlapped . DL.sort $ snd <$> results
+  where
+    go :: HashTable s Word32 Z.Ipv4Block -> [Z.Ipv4Block] -> ST s ()
+    go _ [] = return ()
+    go h (b:bs) = do
+      let superB@(Z.Ipv4Block (Z.Ipv4Address hkey) _) = superBlock b
+      exists <- H.lookup h hkey
+      case exists of
+        Nothing         -> do
+          H.insert h hkey b
+          go h bs
+        Just x | x /= b -> do
+          H.delete h hkey
+          go h (superB : bs)
+        _               -> go h bs
+    superBlock (Z.Ipv4Block (Z.Ipv4Address w32) (Z.Ipv4NetMask m)) =
+      Z.Ipv4Block (Z.Ipv4Address (w32 B..&. (0xFFFFFFFF `B.shiftL` fromIntegral (32 - (m - 1))))) (Z.Ipv4NetMask (m - 1))
+    skipOverlapped [] = []
+    skipOverlapped [b] = [b]
+    skipOverlapped (b1:b2:bs) =
+      if lastIpv4Address b1 >= lastIpv4Address b2 then
+        skipOverlapped (b1:bs)
+      else
+        b1 : skipOverlapped (b2:bs)

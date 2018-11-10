@@ -16,13 +16,24 @@ main = do
   mainWith $ do
     setColumns [Case, Allocated, Max, Live, GCs]
     sequence_
-      [ action "tree" $ do
+      [ action "ip addresses to binary tree" $ do
           ipv4s <- loadIpv4Addresses "data/bench/akamai.txt"
           let tree = I.buildIpv4AddressTree ipv4s
           pure $ force tree
-      , action "collapse to blocks" $ do
+      , action "collapsing ip addresses to blocks (binary tree)" $ do
           ipv4s <- loadIpv4Addresses "data/bench/akamai.txt"
           let blocks = I.ipv4AddressesToBlocks ipv4s
+          pure $ force blocks
+      , action "ip addresses to non-collapsed blocks" $ do
+          ipv4bs <- fmap (\i -> I.Ipv4Block i (I.Ipv4NetMask 32)) <$> loadIpv4Addresses "data/bench/akamai.txt"
+          pure $ force ipv4bs
+      , action "collapsing blocks (map)" $ do
+          ipv4bs <- fmap (\i -> I.Ipv4Block i (I.Ipv4NetMask 32)) <$> loadIpv4Addresses "data/bench/akamai.txt"
+          let blocks = I.collapseIpv4Blocks ipv4bs
+          pure $ force blocks
+      , action "collapsing blocks (mutable hashtable)" $ do
+          ipv4bs <- fmap (\i -> I.Ipv4Block i (I.Ipv4NetMask 32)) <$> loadIpv4Addresses "data/bench/akamai.txt"
+          let blocks = I.collapseIpv4Blocks' ipv4bs
           pure $ force blocks
       ]
   return ()

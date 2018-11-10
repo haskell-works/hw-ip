@@ -18,7 +18,9 @@ extra-source-files:
 dependencies:
   - attoparsec
   - deepseq
+  - containers
   - generic-lens
+  - hashtables
   - hw-bits
   - text
 
