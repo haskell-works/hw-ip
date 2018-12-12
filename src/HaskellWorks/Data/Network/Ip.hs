@@ -5,6 +5,9 @@ module HaskellWorks.Data.Network.Ip
   ( Z.Ipv4Address(Ipv4Address)
   , Z.Ipv4NetMask(Ipv4NetMask)
   , Z.Ipv4Block(Ipv4Block)
+  , Z.Ipv6Address(Ipv6Address)
+  , Z.Ipv6NetMask(Ipv6NetMask)
+  , Z.Ipv6Block(Ipv6Block)
   , bitPower
   , blockSize
   , isCanonical

@@ -19,6 +19,7 @@ dependencies:
   - attoparsec
   - generic-lens
   - hw-bits
+  - iproute
   - text
 
 library:
