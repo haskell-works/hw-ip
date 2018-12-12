@@ -104,11 +104,8 @@ masksIpv6 m =
 isValidIpv6Block :: Ipv6Block -> Bool
 isValidIpv6Block (Ipv6Block b (Ipv6NetMask m)) =
   let lt = masksIpv6 m
-      ipv6 = word32x4ToWords (words b) in
+      ipv6 = I.word32x4ToWords (words b) in
     ipv6 == zipWith (.&.) ipv6 (zipWith xor ipv6 lt)
-
-word32x4ToWords :: (Word32, Word32, Word32, Word32) -> [Word32]
-word32x4ToWords (a, b, c, d) = [a, b, c, d]
 
 ipv4BlockToMappedIpv6Block :: I4.Ipv4Block -> Ipv6Block
 ipv4BlockToMappedIpv6Block (I4.Ipv4Block b m) =

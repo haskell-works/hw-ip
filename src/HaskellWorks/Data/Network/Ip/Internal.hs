@@ -57,3 +57,6 @@ ipv4Block = do
   _    <- AP.char '/'
   mask <- ipv4NetMask
   return (addr, mask)
+
+word32x4ToWords :: (Word32, Word32, Word32, Word32) -> [Word32]
+word32x4ToWords (a, b, c, d) = [a, b, c, d]
