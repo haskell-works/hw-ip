@@ -44,9 +44,9 @@ instance Show Ipv6Address where
 instance Read Ipv6Address where
   readsPrec :: Int -> String -> [(Ipv6Address, String)]
   readsPrec _ s =
-    case readMaybe s of
-      Just (D.IPv6 ip) -> [(Ipv6Address (D.toHostAddress6 ip), "")]
-      Nothing          -> []
+    case readMaybe s :: Maybe D.IPv6 of
+      Just ip -> [(Ipv6Address (D.toHostAddress6 ip), "")]
+      Nothing -> []
 
 newtype Ipv6NetMask = Ipv6NetMask
   { word :: Word8
