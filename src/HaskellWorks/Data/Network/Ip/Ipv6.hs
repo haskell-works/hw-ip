@@ -58,10 +58,7 @@ instance Read Ipv6NetMask where
       Just maskv6 -> [(maskv6, "")]
       Nothing     -> []
     where
-      m = case readMaybe s of
-            Just m' -> if m' >= (0 :: Word8) && m' <= (128 :: Word8) then Just m'
-                       else Nothing
-            Nothing -> Nothing
+      m = mfilter (\a -> a >= 0 && a <= 128) (readMaybe s)
 
 data Ipv6Block = Ipv6Block
   { base :: !Ipv6Address
