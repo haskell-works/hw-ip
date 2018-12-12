@@ -79,4 +79,4 @@ validIpv4Block b@(Ipv4Block (Ipv4Address word) (Ipv4NetMask mask)) =
     else Nothing
 
 isValidIpv4Block :: Ipv4Block -> Bool
-isValidIpv4Block b = isJust $ validIpv4Block b
+isValidIpv4Block = isJust . validIpv4Block
