@@ -46,8 +46,8 @@ instance Read IpBlock where
           Nothing   -> []
 
 isValidIpBlock :: IpBlock -> Bool
-isValidIpBlock (IpBlockV4 _)   = True -- TODO
-isValidIpBlock (IpBlockV6 i6b) = I6.isValidIpv6Block i6b
+isValidIpBlock (IpBlockV4 b) = I4.isValidIpv4Block b
+isValidIpBlock (IpBlockV6 b) = I6.isValidIpv6Block b
 
 firstAddress :: IpBlock -> (Word32, Word32, Word32, Word32)
 firstAddress (IpBlockV4 i4b)                 = firstAddress (IpBlockV6 (I6.ipv4BlockToMappedIpv6Block i4b))

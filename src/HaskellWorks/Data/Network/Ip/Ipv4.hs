@@ -8,11 +8,13 @@ module HaskellWorks.Data.Network.Ip.Ipv4
   ( Ipv4Address(..)
   , Ipv4NetMask(..)
   , Ipv4Block(..)
+  , isValidIpv4Block
   ) where
 
 import Control.Applicative
 import Control.Monad
 import Data.Char
+import Data.Maybe
 import Data.Word
 import GHC.Generics
 import HaskellWorks.Data.Bits.BitWise
@@ -75,3 +77,6 @@ validIpv4Block b@(Ipv4Block (Ipv4Address word) (Ipv4NetMask mask)) =
   if word `B.shiftL` fromIntegral mask `B.xor` 0 == 0
     then pure b
     else Nothing
+
+isValidIpv4Block :: Ipv4Block -> Bool
+isValidIpv4Block b = isJust $ validIpv4Block b
