@@ -2,18 +2,28 @@
 
 module HaskellWorks.Data.Network.IpSpec (spec) where
 
+import Data.List
 import HaskellWorks.Data.Network.Ip
 import HaskellWorks.Data.Network.Ip.Internal
+import HaskellWorks.Data.Network.Ip.Ipv4
 import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Test.Hspec
 
+<<<<<<< HEAD
 import qualified Data.Attoparsec.Text              as AP
 import qualified Data.Text                         as T
 import qualified HaskellWorks.Data.Network.Ip.Ipv4 as V4
 import qualified Hedgehog.Gen                      as G
 import qualified Hedgehog.Range                    as R
 import qualified Text.Read                         as TR
+=======
+import qualified Data.Attoparsec.Text as AP
+import qualified Data.Text            as T
+import qualified Hedgehog.Gen         as G
+import qualified Hedgehog.Range       as R
+import qualified Text.Read            as TR
+>>>>>>> collapse ipv4 addresses into blocks
 
 {-# ANN module ("HLint: ignore Redundant do"  :: String) #-}
 
@@ -80,3 +90,12 @@ spec = describe "HaskellWorks.HUnit.IpSpec" $ do
       (TR.readMaybe "1.2.3.4/8"  :: Maybe V4.IpBlock) === Nothing
       (TR.readMaybe "1.2.3.4/0"  :: Maybe V4.IpBlock) === Nothing
       (TR.readMaybe "1.2.3.4/32" :: Maybe V4.IpBlock) === (Just $ V4.IpBlock (V4.IpAddress 0x01020304) (V4.IpNetMask 32))
+      (TR.readMaybe "1.2.3.4/8"  :: Maybe Ipv4Block) === Nothing
+      (TR.readMaybe "1.2.3.4/0"  :: Maybe Ipv4Block) === Nothing
+      (TR.readMaybe "1.2.3.4/32" :: Maybe Ipv4Block) === (Just $ Ipv4Block (Ipv4Address 0x01020304) (Ipv4NetMask 32))
+
+    it "should collapse blocks" $ require $ property $ do
+      let ipv4blocks1 =    read <$> ["1.2.3.4/32", "4.3.2.1/32"]
+      collapseIpv4Blocks ipv4blocks1 === ipv4blocks1
+      let ipv4blocks2 = read <$> ["1.2.3.3/32", "1.2.3.0/32", "1.2.3.1/32", "1.2.3.2/32"]
+      (collapseIpv4Blocks $ sort ipv4blocks2) === (read <$> ["1.2.3.0/30"])

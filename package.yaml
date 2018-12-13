@@ -18,15 +18,37 @@ extra-source-files:
 dependencies:
   - appar >= 0.1.7
   - attoparsec
+  - bytestring
+  - containers
+  - deepseq
   - generic-lens
   - hw-bits
   - iproute
+  - stringsearch
   - text
 
 library:
   source-dirs: src
   dependencies:
   - base >=4.7 && <5
+
+executables:
+  hw-ip:
+    main: Main.hs
+    source-dirs: app
+    ghc-options:
+      - -Wall
+      - -Wcompat
+      - -Wincomplete-record-updates
+      - -Wincomplete-uni-patterns
+      - -Wredundant-constraints
+      - -threaded
+      - -rtsopts
+      - -O2
+      - -msse4.2
+    dependencies:
+    - base
+    - hw-ip
 
 tests:
   hw-ip-test:
@@ -42,3 +64,13 @@ tests:
     - hw-hspec-hedgehog
     - hw-ip
     - hspec
+
+  hw-ip-space:
+    main:               Space.hs
+    source-dirs:        weigh
+    dependencies:
+      - base
+      - hw-ip
+      - weigh                 >= 0.0.6      && < 0.1
+    verbatim:
+      build-tool-depends: hspec-discover:hspec-discover
