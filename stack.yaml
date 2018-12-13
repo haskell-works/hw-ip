@@ -2,3 +2,6 @@ resolver: lts-12.0
 
 packages:
 - .
+
+extra-deps:
+- appar-0.1.7

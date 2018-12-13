@@ -29,15 +29,15 @@ octet = (ds 1 2 #<*>#  d 5  ) #<*># ds 0 5
   <|>    ds 1 9 #<*># ds 0 9
   <|>    ds 0 9
 
+whitespace :: AP.Parser ()
+whitespace = void $ many (AP.satisfy isSpace)
+
 ipv4Address :: AP.Parser Word32
 ipv4Address = fourOctetsToWord32
   <$> (octet <* AP.char '.')
   <*> (octet <* AP.char '.')
   <*> (octet <* AP.char '.')
   <*>  octet
-
-whitespace :: AP.Parser ()
-whitespace = void $ many (AP.satisfy isSpace)
 
 ipv4NetMask :: AP.Parser Word8
 ipv4NetMask =  d 3   #<*># ds 0 2
@@ -57,3 +57,6 @@ ipv4Block = do
   _    <- AP.char '/'
   mask <- ipv4NetMask
   return (addr, mask)
+
+word32x4ToWords :: (Word32, Word32, Word32, Word32) -> [Word32]
+word32x4ToWords (a, b, c, d) = [a, b, c, d]

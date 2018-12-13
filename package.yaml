@@ -16,9 +16,11 @@ extra-source-files:
 - README.md
 
 dependencies:
+  - appar >= 0.1.7
   - attoparsec
   - generic-lens
   - hw-bits
+  - iproute
   - text
 
 library:
