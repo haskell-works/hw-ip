@@ -4,16 +4,15 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs               #-}
 {-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE TypeApplications           #-}
 
 module HaskellWorks.Data.Network.Ip.Ipv6
-  ( Ipv6Address(..)
-  , Ipv6NetMask(..)
-  , Ipv6Block(..)
-  , ipv4BlockToMappedIpv6Block
-  , parseIpv6Block
-  , masksIpv6
-  , isValidIpv6Block
+  ( IpAddress(..)
+  , IpNetMask(..)
+  , IpBlock(..)
+  , fromV4
+  , parseIpBlock
+  , masksIp
+  , isValidIpBlock
   ) where
 
 import Control.Applicative
@@ -33,71 +32,71 @@ import qualified Data.IP                               as D
 import qualified Data.String                           as S
 import qualified Data.Text                             as T
 import qualified HaskellWorks.Data.Network.Ip.Internal as I
-import qualified HaskellWorks.Data.Network.Ip.Ipv4     as I4
+import qualified HaskellWorks.Data.Network.Ip.Ipv4     as V4
 import qualified Text.ParserCombinators.ReadPrec       as RP
 
-newtype Ipv6Address = Ipv6Address
+newtype IpAddress = IpAddress
   { words :: (Word32, Word32, Word32, Word32)
   } deriving (Eq, Ord, Generic)
 
-instance Show Ipv6Address where
-  showsPrec _ (Ipv6Address w) = shows (D.fromHostAddress6 w)
+instance Show IpAddress where
+  showsPrec _ (IpAddress w) = shows (D.fromHostAddress6 w)
 
-instance Read Ipv6Address where
-  readsPrec :: Int -> String -> [(Ipv6Address, String)]
+instance Read IpAddress where
+  readsPrec :: Int -> String -> [(IpAddress, String)]
   readsPrec _ s =
     case readMaybe s :: Maybe D.IPv6 of
-      Just ip -> [(Ipv6Address (D.toHostAddress6 ip), "")]
+      Just ip -> [(IpAddress (D.toHostAddress6 ip), "")]
       Nothing -> []
 
-newtype Ipv6NetMask = Ipv6NetMask
+newtype IpNetMask = IpNetMask
   { word :: Word8
   } deriving (Enum, Eq, Ord, Show, Generic)
 
-instance Read Ipv6NetMask where
+instance Read IpNetMask where
   readsPrec _ s =
-    case Ipv6NetMask <$> m of
+    case IpNetMask <$> m of
       Just maskv6 -> [(maskv6, "")]
       Nothing     -> []
     where
       m = mfilter (\a -> a >= 0 && a <= 128) (readMaybe s)
 
-data Ipv6Block = Ipv6Block
-  { base :: !Ipv6Address
-  , mask :: !Ipv6NetMask
+data IpBlock = IpBlock
+  { base :: !IpAddress
+  , mask :: !IpNetMask
   } deriving (Eq, Ord, Generic)
 
-instance Read Ipv6Block where
+instance Read IpBlock where
   readsPrec _ s =
     case T.unpack <$> T.split (== '/') (T.pack s) of
       [addr, mask] ->
-        case readMaybe addr :: Maybe Ipv6Address of
+        case readMaybe addr :: Maybe IpAddress of
           Just ipv6 ->
             case readMaybe mask of
               Just maskv6 ->
-                let i6b = Ipv6Block ipv6 maskv6 in
-                  [(i6b, "") | isValidIpv6Block i6b]
+                let i6b = IpBlock ipv6 maskv6 in
+                  [(i6b, "") | isValidIpBlock i6b]
               Nothing     -> []
           Nothing -> []
       _ -> []
 
-instance Show Ipv6Block where
-  showsPrec _ (Ipv6Block b (Ipv6NetMask m))  = shows b . ('/':) . shows m
+instance Show IpBlock where
+  showsPrec _ (IpBlock b (IpNetMask m))  = shows b . ('/':) . shows m
 
-parseIpv6Block :: T.Text -> Either T.Text Ipv6Block
-parseIpv6Block t =
+parseIpBlock :: T.Text -> Either T.Text IpBlock
+parseIpBlock t =
   case T.unpack <$> T.split (== '/') t of
     [addr, mask] ->
-      case readMaybe addr :: Maybe Ipv6Address of
+      case readMaybe addr :: Maybe IpAddress of
         Just ipv6 ->
           case readMaybe mask of
-            Just maskv6 -> Right $ Ipv6Block ipv6 maskv6
+            Just maskv6 -> Right $ IpBlock ipv6 maskv6
             Nothing     -> Left "cannot read mask"
         Nothing -> Left "cannot read addr"
     _ -> Left "invalid input string"
 
-masksIpv6 :: Word8 -> [Word32]
-masksIpv6 m =
+masksIp :: Word8 -> [Word32]
+masksIp m =
   let e = 0xFFFFFFFF :: Word32
       -- bits: number of bits which should be 1
       maskValue bits = e `shiftR` (32 - bits) in
@@ -112,13 +111,13 @@ masksIpv6 m =
     else
       [0, 0, 0, 0]
 
-isValidIpv6Block :: Ipv6Block -> Bool
-isValidIpv6Block (Ipv6Block b (Ipv6NetMask m)) =
-  let lt = masksIpv6 m
+isValidIpBlock :: IpBlock -> Bool
+isValidIpBlock (IpBlock b (IpNetMask m)) =
+  let lt = masksIp m
       ipv6 = I.word32x4ToWords (words b) in
     ipv6 == zipWith (.&.) ipv6 (zipWith xor ipv6 lt)
 
-ipv4BlockToMappedIpv6Block :: I4.Ipv4Block -> Ipv6Block
-ipv4BlockToMappedIpv6Block (I4.Ipv4Block b m) =
+fromV4 :: V4.IpBlock -> IpBlock
+fromV4 (V4.IpBlock b m) =
   -- RFC-4291, "IPv4-Mapped IPv6 Address"
-  Ipv6Block (Ipv6Address (0, 0, 0xFFFF, I4.word b)) (Ipv6NetMask (96 + I4.word8 m))
+  IpBlock (IpAddress (0, 0, 0xFFFF, V4.word b)) (IpNetMask (96 + V4.word8 m))
