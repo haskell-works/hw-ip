@@ -80,3 +80,9 @@ spec = describe "HaskellWorks.HUnit.IpSpec" $ do
       (TR.readMaybe "1.2.3.4/8"  :: Maybe V4.IpBlock) === Nothing
       (TR.readMaybe "1.2.3.4/0"  :: Maybe V4.IpBlock) === Nothing
       (TR.readMaybe "1.2.3.4/32" :: Maybe V4.IpBlock) === (Just $ V4.IpBlock (V4.IpAddress 0x01020304) (V4.IpNetMask 32))
+
+    it "should canonicalise block" $ requireTest $ do
+      V4.canonicaliseIpBlock (V4.IpBlock (V4.IpAddress 0x01020304) (V4.IpNetMask 32)) === V4.IpBlock (V4.IpAddress 0x01020304) (V4.IpNetMask 32)
+      V4.canonicaliseIpBlock (V4.IpBlock (V4.IpAddress 0x01020304) (V4.IpNetMask 24)) === V4.IpBlock (V4.IpAddress 0x01020300) (V4.IpNetMask 24)
+      V4.canonicaliseIpBlock (V4.IpBlock (V4.IpAddress 0x01020304) (V4.IpNetMask 16)) === V4.IpBlock (V4.IpAddress 0x01020000) (V4.IpNetMask 16)
+      V4.canonicaliseIpBlock (V4.IpBlock (V4.IpAddress 0x01020304) (V4.IpNetMask  8)) === V4.IpBlock (V4.IpAddress 0x01000000) (V4.IpNetMask  8)

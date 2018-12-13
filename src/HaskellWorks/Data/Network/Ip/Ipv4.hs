@@ -20,6 +20,7 @@ module HaskellWorks.Data.Network.Ip.Ipv4
   , ipAddressToWords
   , firstIpAddress
   , lastIpAddress
+  , canonicaliseIpBlock
   ) where
 
 import Control.Applicative
@@ -81,6 +82,12 @@ instance Read IpBlock where
 -- | A valid block must have all host-bits set to zero after the mask is applied
 isValidIpBlock :: IpBlock -> Bool
 isValidIpBlock (IpBlock (IpAddress word) (IpNetMask mask)) = word .<. fromIntegral mask == 0
+
+-- | Canonicalise the block by zero-ing out the host bits
+canonicaliseIpBlock :: IpBlock -> IpBlock
+canonicaliseIpBlock (IpBlock (IpAddress word) (IpNetMask mask)) = IpBlock (IpAddress newWord) (IpNetMask mask)
+  where bp = fromIntegral (32 - mask)
+        newWord = (word .>. bp) .<. bp
 
 firstIpAddress :: IpBlock -> IpAddress
 firstIpAddress (IpBlock base _) = base
