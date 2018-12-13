@@ -5,21 +5,21 @@
 {-# LANGUAGE InstanceSigs               #-}
 
 module HaskellWorks.Data.Network.Ip.Ipv4
-  ( Ipv4Address(..)
-  , Ipv4NetMask(..)
-  , Ipv4Block(..)
-  , isValidIpv4Block
+  ( IpAddress(..)
+  , IpNetMask(..)
+  , IpBlock(..)
+  , isValidIpBlock
   , bitPower
   , blockSize
   , isCanonical
   , splitBlock
-  , textToMaybeIpv4Address
-  , parseIpv4Address
-  , ipv4AddressToString
-  , ipv4AddressToText
-  , ipv4AddressToWords
-  , firstIpv4Address
-  , lastIpv4Address
+  , textToMaybeIpAddress
+  , parseIpAddress
+  , ipAddressToString
+  , ipAddressToText
+  , ipAddressToWords
+  , firstIpAddress
+  , lastIpAddress
   ) where
 
 import Control.Applicative
@@ -37,44 +37,44 @@ import qualified Data.Text                             as T
 import qualified HaskellWorks.Data.Network.Ip.Internal as I
 import qualified Text.ParserCombinators.ReadPrec       as RP
 
-newtype Ipv4Address = Ipv4Address
+newtype IpAddress = IpAddress
   { word :: Word32
   } deriving (Enum, Eq, Ord, Generic)
 
-instance Show Ipv4Address where
-  showsPrec _ (Ipv4Address w) =
+instance Show IpAddress where
+  showsPrec _ (IpAddress w) =
     shows ((w .>. 24) .&. 0xff) . ('.':) .
     shows ((w .>. 16) .&. 0xff) . ('.':) .
     shows ((w .>.  8) .&. 0xff) . ('.':) .
     shows ( w         .&. 0xff)
 
-instance Read Ipv4Address where
-  readsPrec :: Int -> String -> [(Ipv4Address, String)]
+instance Read IpAddress where
+  readsPrec :: Int -> String -> [(IpAddress, String)]
   readsPrec _ s = case AP.parseWith (return mempty) (I.whitespace *> I.ipv4Address) (T.pack s) of
     Just result -> case result of
-      AP.Done i r   -> [(Ipv4Address r, T.unpack i)]
+      AP.Done i r   -> [(IpAddress r, T.unpack i)]
       AP.Partial _  -> []
       AP.Fail a b c -> []
     Nothing -> []
 
-newtype Ipv4NetMask = Ipv4NetMask
+newtype IpNetMask = IpNetMask
   { word8 :: Word8
   } deriving (Enum, Eq, Ord, Show, Generic)
 
-data Ipv4Block = Ipv4Block
-  { base :: !Ipv4Address
-  , mask :: !Ipv4NetMask
+data IpBlock = IpBlock
+  { base :: !IpAddress
+  , mask :: !IpNetMask
   } deriving (Eq, Ord)
 
-instance Show Ipv4Block where
-  showsPrec _ (Ipv4Block b (Ipv4NetMask m)) = shows b . ('/':) . shows m
+instance Show IpBlock where
+  showsPrec _ (IpBlock b (IpNetMask m)) = shows b . ('/':) . shows m
 
-instance Read Ipv4Block where
-  readsPrec :: Int -> String -> [(Ipv4Block, String)]
+instance Read IpBlock where
+  readsPrec :: Int -> String -> [(IpBlock, String)]
   readsPrec _ s = case AP.parseWith (return mempty) (I.whitespace *> I.ipv4Block) (T.pack s) of
     Just result -> case result of
       AP.Done i (a, m) ->
-        case validIpv4Block $ Ipv4Block (Ipv4Address a) (Ipv4NetMask m) of
+        case validIpBlock $ IpBlock (IpAddress a) (IpNetMask m) of
           Just b  -> [(b, T.unpack i)]
           Nothing -> []
       AP.Partial _    -> []
@@ -83,58 +83,58 @@ instance Read Ipv4Block where
 
 -- shift the address left by the amount of mask bits to reveal only host bits
 -- if any bits left are non-zero, then the mask is not big enough
-validIpv4Block :: Ipv4Block -> Maybe Ipv4Block
-validIpv4Block b@(Ipv4Block (Ipv4Address word) (Ipv4NetMask mask)) =
+validIpBlock :: IpBlock -> Maybe IpBlock
+validIpBlock b@(IpBlock (IpAddress word) (IpNetMask mask)) =
   if word `B.shiftL` fromIntegral mask `B.xor` 0 == 0
     then pure b
     else Nothing
 
-isValidIpv4Block :: Ipv4Block -> Bool
-isValidIpv4Block = isJust . validIpv4Block
+isValidIpBlock :: IpBlock -> Bool
+isValidIpBlock = isJust . validIpBlock
 
-firstIpv4Address :: Ipv4Block -> Ipv4Address
-firstIpv4Address (Ipv4Block base _) = base
+firstIpAddress :: IpBlock -> IpAddress
+firstIpAddress (IpBlock base _) = base
 
-lastIpv4Address :: Ipv4Block -> Ipv4Address
-lastIpv4Address b@(Ipv4Block (Ipv4Address base) _) = Ipv4Address (base + fromIntegral (blockSize b) - 1)
+lastIpAddress :: IpBlock -> IpAddress
+lastIpAddress b@(IpBlock (IpAddress base) _) = IpAddress (base + fromIntegral (blockSize b) - 1)
 
-bitPower :: Ipv4NetMask -> Word64
-bitPower (Ipv4NetMask m) = fromIntegral (32 - m)
+bitPower :: IpNetMask -> Word64
+bitPower (IpNetMask m) = fromIntegral (32 - m)
 
-isCanonical :: Ipv4Block -> Bool
-isCanonical (Ipv4Block (Ipv4Address b) m) = ((b .>. bitPower m) .<. bitPower m) == b
+isCanonical :: IpBlock -> Bool
+isCanonical (IpBlock (IpAddress b) m) = ((b .>. bitPower m) .<. bitPower m) == b
 
-splitBlock :: Ipv4Block -> Maybe (Ipv4Block, Ipv4Block)
-splitBlock (Ipv4Block (Ipv4Address b) (Ipv4NetMask m)) =
+splitBlock :: IpBlock -> Maybe (IpBlock, IpBlock)
+splitBlock (IpBlock (IpAddress b) (IpNetMask m)) =
   if m >= 0 && m < 32
     then  let !hm       = m + 1
-              !halfMask = Ipv4NetMask hm
+              !halfMask = IpNetMask hm
               !c        = fromIntegral ((0x100000000 :: Word64) .>. fromIntegral (m + 1))
           in  Just
-              ( Ipv4Block (Ipv4Address  b     ) halfMask
-              , Ipv4Block (Ipv4Address (b + c)) halfMask
+              ( IpBlock (IpAddress  b     ) halfMask
+              , IpBlock (IpAddress (b + c)) halfMask
               )
     else  Nothing
 
-blockSize :: Ipv4Block -> Int
-blockSize (Ipv4Block _ m) = 2 ^ bitPower m
+blockSize :: IpBlock -> Int
+blockSize (IpBlock _ m) = 2 ^ bitPower m
 
-textToMaybeIpv4Address :: T.Text -> Maybe Ipv4Address
-textToMaybeIpv4Address t = AP.maybeResult =<< AP.parseWith (return mempty) parseIpv4Address t
+textToMaybeIpAddress :: T.Text -> Maybe IpAddress
+textToMaybeIpAddress t = AP.maybeResult =<< AP.parseWith (return mempty) parseIpAddress t
 
-ipv4AddressToString :: Ipv4Address -> String
-ipv4AddressToString = show
+ipAddressToString :: IpAddress -> String
+ipAddressToString = show
 
-ipv4AddressToText :: Ipv4Address -> T.Text
-ipv4AddressToText = T.pack . ipv4AddressToString
+ipAddressToText :: IpAddress -> T.Text
+ipAddressToText = T.pack . ipAddressToString
 
-ipv4AddressToWords :: Ipv4Address -> (Word8, Word8, Word8, Word8)
-ipv4AddressToWords (Ipv4Address w) =
+ipAddressToWords :: IpAddress -> (Word8, Word8, Word8, Word8)
+ipAddressToWords (IpAddress w) =
   ( fromIntegral (w .>. 24) .&. 0xff
   , fromIntegral (w .>. 16) .&. 0xff
   , fromIntegral (w .>.  8) .&. 0xff
   , fromIntegral (w         .&. 0xff)
   )
 
-parseIpv4Address :: AP.Parser Ipv4Address
-parseIpv4Address = Ipv4Address <$> I.ipv4Address
+parseIpAddress :: AP.Parser IpAddress
+parseIpAddress = IpAddress <$> I.ipv4Address
