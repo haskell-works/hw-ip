@@ -21,11 +21,13 @@ module HaskellWorks.Data.Network.Ip.Ipv4
   , firstIpAddress
   , lastIpAddress
   , canonicaliseIpBlock
+  , collapseIpBlocks
   ) where
 
 import Control.Applicative
 import Control.Monad
 import Data.Char
+import Data.Foldable
 import Data.Maybe
 import Data.Word
 import GHC.Generics
@@ -34,6 +36,7 @@ import Text.Read
 
 import qualified Data.Attoparsec.Text                  as AP
 import qualified Data.Bits                             as B
+import qualified Data.Sequence                         as S
 import qualified Data.Text                             as T
 import qualified HaskellWorks.Data.Network.Ip.Internal as I
 import qualified Text.ParserCombinators.ReadPrec       as RP
@@ -135,3 +138,31 @@ ipAddressToWords (IpAddress w) =
 
 parseIpAddress :: AP.Parser IpAddress
 parseIpAddress = IpAddress <$> I.ipv4Address
+
+-- assume distinct & sorted input
+collapseIpBlocks :: [IpBlock] -> [IpBlock]
+collapseIpBlocks tomerge =
+  skipOverlapped $ concat $ toList <$> go S.empty tomerge
+  where
+    go :: S.Seq IpBlock -> [IpBlock] -> [S.Seq IpBlock]
+    go m [] = [m]
+    go m (b:bs) =
+      case S.viewr m of
+        S.EmptyR -> go (m S.|> b) bs
+        m' S.:> bp -> do
+          let sp@(IpBlock _ (IpNetMask mask)) = superBlock bp
+          let sp'@(IpBlock _ (IpNetMask mask')) = superBlock b
+          if sp == sp' then go m' (sp : bs)
+          else if mask > mask' then
+                 m : go (S.empty S.|> b) bs
+               else
+                 go (m S.|> b) bs
+    superBlock (IpBlock (IpAddress w32) (IpNetMask m)) =
+      IpBlock (IpAddress (w32 B..&. (0xFFFFFFFF `B.shiftL` fromIntegral (32 - (m - 1))))) (IpNetMask (m - 1))
+    skipOverlapped [] = []
+    skipOverlapped [b] = [b]
+    skipOverlapped (b1:b2:bs) =
+      if lastIpAddress b1 >= lastIpAddress b2 then
+        skipOverlapped (b1:bs)
+      else
+        b1 : skipOverlapped (b2:bs)

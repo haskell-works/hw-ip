@@ -2,13 +2,14 @@
 
 module HaskellWorks.Data.Network.Ipv4Spec (spec) where
 
-import HaskellWorks.Data.Network.Ip
 import HaskellWorks.Data.Network.Ip.Internal
+import HaskellWorks.Data.Network.Ip.Ipv4
 import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Test.Hspec
 
 import qualified Data.Attoparsec.Text              as AP
+import qualified Data.List                         as DL
 import qualified Data.Text                         as T
 import qualified HaskellWorks.Data.Network.Ip.Ipv4 as V4
 import qualified Hedgehog.Gen                      as G
@@ -86,3 +87,11 @@ spec = describe "HaskellWorks.HUnit.Ipv4Spec" $ do
       V4.canonicaliseIpBlock (V4.IpBlock (V4.IpAddress 0x01020304) (V4.IpNetMask 24)) === V4.IpBlock (V4.IpAddress 0x01020300) (V4.IpNetMask 24)
       V4.canonicaliseIpBlock (V4.IpBlock (V4.IpAddress 0x01020304) (V4.IpNetMask 16)) === V4.IpBlock (V4.IpAddress 0x01020000) (V4.IpNetMask 16)
       V4.canonicaliseIpBlock (V4.IpBlock (V4.IpAddress 0x01020304) (V4.IpNetMask  8)) === V4.IpBlock (V4.IpAddress 0x01000000) (V4.IpNetMask  8)
+
+    it "should collapse blocks" $ require $ property $ do
+      let ipblocks1 =    read <$> ["1.2.3.4/32", "4.3.2.1/32"]
+      collapseIpBlocks ipblocks1 === ipblocks1
+      let ipblocks2 = read <$> ["1.2.3.3/32", "1.2.3.0/32", "1.2.3.1/32", "1.2.3.2/32"]
+      collapseIpBlocks (DL.sort ipblocks2) === (read <$> ["1.2.3.0/30"])
+      let ipblocks3 = read <$> ["1.2.3.3/32", "1.2.3.0/32", "1.2.3.1/32", "1.2.3.2/32", "5.5.5.5/32"]
+      collapseIpBlocks (DL.sort ipblocks3) === (read <$> ["1.2.3.0/30", "5.5.5.5/32"])
