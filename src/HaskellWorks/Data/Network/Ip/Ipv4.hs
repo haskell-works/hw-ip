@@ -74,7 +74,7 @@ instance Read IpBlock where
   readsPrec :: Int -> String -> [(IpBlock, String)]
   readsPrec _ s = case AP.parseWith (return mempty) (I.whitespace *> I.ipv4Block) (T.pack s) of
     Just result -> case result of
-      AP.Done i (a, m) -> let b = IpBlock (IpAddress a) (IpNetMask m) in [(b, T.unpack i) | isValidIpBlock b]
+      AP.Done i (a, m) -> [(IpBlock (IpAddress a) (IpNetMask m), T.unpack i)]
       AP.Partial _     -> []
       AP.Fail a b c    -> []
     Nothing -> []
