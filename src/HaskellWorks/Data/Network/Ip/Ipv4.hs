@@ -64,7 +64,7 @@ newtype IpNetMask = IpNetMask
 data IpBlock = IpBlock
   { base :: !IpAddress
   , mask :: !IpNetMask
-  } deriving (Eq, Ord)
+  } deriving (Eq, Ord, Generic)
 
 instance Show IpBlock where
   showsPrec _ (IpBlock b (IpNetMask m)) = shows b . ('/':) . shows m
@@ -73,24 +73,14 @@ instance Read IpBlock where
   readsPrec :: Int -> String -> [(IpBlock, String)]
   readsPrec _ s = case AP.parseWith (return mempty) (I.whitespace *> I.ipv4Block) (T.pack s) of
     Just result -> case result of
-      AP.Done i (a, m) ->
-        case validIpBlock $ IpBlock (IpAddress a) (IpNetMask m) of
-          Just b  -> [(b, T.unpack i)]
-          Nothing -> []
-      AP.Partial _    -> []
-      AP.Fail a b c   -> []
+      AP.Done i (a, m) -> let b = IpBlock (IpAddress a) (IpNetMask m) in [(b, T.unpack i) | isValidIpBlock b]
+      AP.Partial _     -> []
+      AP.Fail a b c    -> []
     Nothing -> []
 
--- shift the address left by the amount of mask bits to reveal only host bits
--- if any bits left are non-zero, then the mask is not big enough
-validIpBlock :: IpBlock -> Maybe IpBlock
-validIpBlock b@(IpBlock (IpAddress word) (IpNetMask mask)) =
-  if word `B.shiftL` fromIntegral mask `B.xor` 0 == 0
-    then pure b
-    else Nothing
-
+-- | A valid block must have all host-bits set to zero
 isValidIpBlock :: IpBlock -> Bool
-isValidIpBlock = isJust . validIpBlock
+isValidIpBlock (IpBlock (IpAddress word) (IpNetMask mask)) = word `B.shiftL` fromIntegral mask == 0
 
 firstIpAddress :: IpBlock -> IpAddress
 firstIpAddress (IpBlock base _) = base
