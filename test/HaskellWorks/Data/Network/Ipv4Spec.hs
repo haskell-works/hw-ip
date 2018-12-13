@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module HaskellWorks.Data.Network.IpSpec (spec) where
+module HaskellWorks.Data.Network.Ipv4Spec (spec) where
 
 import HaskellWorks.Data.Network.Ip
 import HaskellWorks.Data.Network.Ip.Internal
@@ -18,7 +18,7 @@ import qualified Text.Read                         as TR
 {-# ANN module ("HLint: ignore Redundant do"  :: String) #-}
 
 spec :: Spec
-spec = describe "HaskellWorks.HUnit.IpSpec" $ do
+spec = describe "HaskellWorks.HUnit.Ipv4Spec" $ do
   describe "octet" $ do
     it "should go from 0-255" $ require $ property $ do
       b <- forAll $ G.word8 R.constantBounded
@@ -77,9 +77,9 @@ spec = describe "HaskellWorks.HUnit.IpSpec" $ do
       V4.blockSize (V4.IpBlock (V4.IpAddress 0x00000000) (V4.IpNetMask  0)) === 0x100000000
 
     it "should validate masks" $ requireTest $ do
-      (TR.readMaybe "1.2.3.4/8"  :: Maybe V4.IpBlock) === Nothing
-      (TR.readMaybe "1.2.3.4/0"  :: Maybe V4.IpBlock) === Nothing
-      (TR.readMaybe "1.2.3.4/32" :: Maybe V4.IpBlock) === (Just $ V4.IpBlock (V4.IpAddress 0x01020304) (V4.IpNetMask 32))
+      (read "1.2.3.4/8"  :: V4.IpBlock) === V4.IpBlock (V4.IpAddress 0x01020304) (V4.IpNetMask  8)
+      (read "1.2.3.4/0"  :: V4.IpBlock) === V4.IpBlock (V4.IpAddress 0x01020304) (V4.IpNetMask  0)
+      (read "1.2.3.4/32" :: V4.IpBlock) === V4.IpBlock (V4.IpAddress 0x01020304) (V4.IpNetMask 32)
 
     it "should canonicalise block" $ requireTest $ do
       V4.canonicaliseIpBlock (V4.IpBlock (V4.IpAddress 0x01020304) (V4.IpNetMask 32)) === V4.IpBlock (V4.IpAddress 0x01020304) (V4.IpNetMask 32)
