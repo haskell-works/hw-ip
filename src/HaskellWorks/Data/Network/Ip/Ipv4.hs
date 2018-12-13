@@ -80,7 +80,7 @@ instance Read IpBlock where
 
 -- | A valid block must have all host-bits set to zero after the mask is applied
 isValidIpBlock :: IpBlock -> Bool
-isValidIpBlock (IpBlock (IpAddress word) (IpNetMask mask)) = word `B.shiftL` fromIntegral mask == 0
+isValidIpBlock (IpBlock (IpAddress word) (IpNetMask mask)) = word .<. fromIntegral mask == 0
 
 firstIpAddress :: IpBlock -> IpAddress
 firstIpAddress (IpBlock base _) = base
