@@ -88,7 +88,7 @@ spec = describe "HaskellWorks.HUnit.Ipv4Spec" $ do
       V4.canonicaliseIpBlock (V4.IpBlock (V4.IpAddress 0x01020304) (V4.IpNetMask 16)) === V4.IpBlock (V4.IpAddress 0x01020000) (V4.IpNetMask 16)
       V4.canonicaliseIpBlock (V4.IpBlock (V4.IpAddress 0x01020304) (V4.IpNetMask  8)) === V4.IpBlock (V4.IpAddress 0x01000000) (V4.IpNetMask  8)
 
-    it "should collapse blocks" $ require $ property $ do
+    it "should collapse blocks" $ requireTest $ do
       let ipblocks1 =    read <$> ["1.2.3.4/32", "4.3.2.1/32"]
       collapseIpBlocks ipblocks1 === ipblocks1
       let ipblocks2 = read <$> ["1.2.3.3/32", "1.2.3.0/32", "1.2.3.1/32", "1.2.3.2/32"]
