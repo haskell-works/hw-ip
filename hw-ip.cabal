@@ -29,7 +29,6 @@ library
       HaskellWorks.Data.Network.Ip.Ipv6
       HaskellWorks.Data.Network.Ip.Internal
       HaskellWorks.Data.Network.Ip.Ipv4
-      HaskellWorks.Data.Network.Ip.Type
     hs-source-dirs: src
     other-modules:
         Paths_hw_ip
