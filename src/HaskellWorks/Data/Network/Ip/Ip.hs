@@ -3,7 +3,7 @@
 {-# LANGUAGE InstanceSigs               #-}
 {-# LANGUAGE OverloadedStrings          #-}
 
-module HaskellWorks.Data.Network.Ip.Block
+module HaskellWorks.Data.Network.Ip.Ip
   ( IpBlock(..)
   , isValidIpBlock
   , firstAddress
@@ -22,7 +22,6 @@ import Text.Read
 import qualified Data.Attoparsec.Text                  as AP
 import qualified Data.Bits                             as B
 import qualified Data.Text                             as T
-import qualified HaskellWorks.Data.Network.Ip          as Z
 import qualified HaskellWorks.Data.Network.Ip.Internal as I
 import qualified HaskellWorks.Data.Network.Ip.Ipv4     as I4
 import qualified HaskellWorks.Data.Network.Ip.Ipv6     as I6
@@ -54,7 +53,7 @@ firstAddress (IpBlockV4 i4b)                 = firstAddress (IpBlockV6 (I6.ipv4B
 firstAddress (IpBlockV6 (I6.Ipv6Block ip _)) = I6.words ip
 
 lastAddress :: IpBlock -> (Word32, Word32, Word32, Word32)
-lastAddress (IpBlockV4 ib) = (0, 0, 0xFFFF, I4.word (Z.lastIpv4Address ib))
+lastAddress (IpBlockV4 ib) = (0, 0, 0xFFFF, I4.word (I4.lastIpv4Address ib))
 lastAddress (IpBlockV6 (I6.Ipv6Block ip (I6.Ipv6NetMask msk))) =
     let (w1, w2, w3, w4) = I6.words ip
         lt = I6.masksIpv6 $ fromIntegral msk

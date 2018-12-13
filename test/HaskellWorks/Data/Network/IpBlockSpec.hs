@@ -3,7 +3,6 @@
 module HaskellWorks.Data.Network.IpBlockSpec (spec) where
 
 import HaskellWorks.Data.Network.Ip
-import HaskellWorks.Data.Network.Ip.Block
 import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Test.Hspec

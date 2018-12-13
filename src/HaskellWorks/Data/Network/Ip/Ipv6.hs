@@ -11,6 +11,7 @@ module HaskellWorks.Data.Network.Ip.Ipv6
   , Ipv6NetMask(..)
   , Ipv6Block(..)
   , ipv4BlockToMappedIpv6Block
+  , parseIpv6Block
   , masksIpv6
   , isValidIpv6Block
   ) where
@@ -29,6 +30,7 @@ import Text.Read
 import qualified Data.Attoparsec.Text                  as AP
 import qualified Data.Bits                             as B
 import qualified Data.IP                               as D
+import qualified Data.String                           as S
 import qualified Data.Text                             as T
 import qualified HaskellWorks.Data.Network.Ip.Internal as I
 import qualified HaskellWorks.Data.Network.Ip.Ipv4     as I4
@@ -81,6 +83,18 @@ instance Read Ipv6Block where
 
 instance Show Ipv6Block where
   showsPrec _ (Ipv6Block b (Ipv6NetMask m))  = shows b . ('/':) . shows m
+
+parseIpv6Block :: T.Text -> Either T.Text Ipv6Block
+parseIpv6Block t =
+  case T.unpack <$> T.split (== '/') t of
+    [addr, mask] ->
+      case readMaybe addr :: Maybe Ipv6Address of
+        Just ipv6 ->
+          case readMaybe mask of
+            Just maskv6 -> Right $ Ipv6Block ipv6 maskv6
+            Nothing     -> Left "cannot read mask"
+        Nothing -> Left "cannot read addr"
+    _ -> Left "invalid input string"
 
 masksIpv6 :: Word8 -> [Word32]
 masksIpv6 m =

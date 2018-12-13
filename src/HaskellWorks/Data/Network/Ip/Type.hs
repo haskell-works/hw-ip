@@ -1,8 +1,5 @@
-{-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DuplicateRecordFields      #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs               #-}
-{-# LANGUAGE OverloadedStrings          #-}
 
 module HaskellWorks.Data.Network.Ip.Type
   ( I4.Ipv4Address(..)

@@ -3,10 +3,17 @@
 module HaskellWorks.Data.Network.Ipv6Spec (spec) where
 
 import HaskellWorks.Data.Network.Ip
-import HaskellWorks.Data.Network.Ip.Block
+import HaskellWorks.Data.Network.Ip.Ipv4
+import HaskellWorks.Data.Network.Ip.Ipv6
 import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Test.Hspec
+
+import qualified Data.Attoparsec.Text as AP
+import qualified Data.Text            as T
+import qualified Hedgehog.Gen         as G
+import qualified Hedgehog.Range       as R
+import qualified Text.Read            as TR
 
 {-# ANN module ("HLint: ignore Redundant do"  :: String) #-}
 
@@ -27,3 +34,9 @@ spec = describe "HaskellWorks.HUnit.IpSpec" $ do
       read "1:2:3:4::/127"  === Ipv6Block (Ipv6Address (0x10002,0x30004,0,0)) (Ipv6NetMask 127)
       read "1234::/16"      === Ipv6Block (Ipv6Address (0x12340000, 0, 0, 0)) (Ipv6NetMask 16)
       read "12:34::/32"     === Ipv6Block (Ipv6Address (0x120034, 0, 0, 0))   (Ipv6NetMask 32)
+
+    it "should parse what it has shown" $ require $ property $ do
+      a <- forAll $ G.word32 R.constantBounded
+      m <- forAll $ G.word8 $ R.linear 0 128
+      let addr = Ipv6Block (Ipv6Address (a, 0, 0, 0)) (Ipv6NetMask 1)
+      parseIpv6Block (T.pack (show addr)) === Right addr
