@@ -5,8 +5,7 @@ module HaskellWorks.Data.Network.Ip.Range where
 
 import GHC.Generics
 
-import qualified Data.Attoparsec.Text              as AP
-import qualified HaskellWorks.Data.Network.Ip.Ipv4 as V4
+import qualified Data.Attoparsec.Text as AP
 
 data Range a = Range
   { first :: a
