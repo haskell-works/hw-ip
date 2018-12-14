@@ -22,6 +22,7 @@ module HaskellWorks.Data.Network.Ip.Ipv4
   , lastIpAddress
   , canonicaliseIpBlock
   , collapseIpBlocks
+  , splitIpRange
   ) where
 
 import Control.Applicative
@@ -32,10 +33,12 @@ import Data.Maybe
 import Data.Word
 import GHC.Generics
 import HaskellWorks.Data.Bits.BitWise
+import HaskellWorks.Data.Network.Ip.Range
 import Text.Read
 
 import qualified Data.Attoparsec.Text                  as AP
 import qualified Data.Bits                             as B
+import qualified Data.Bits                             as DB
 import qualified Data.Sequence                         as S
 import qualified Data.Text                             as T
 import qualified HaskellWorks.Data.Network.Ip.Internal as I
@@ -138,6 +141,16 @@ ipAddressToWords (IpAddress w) =
 
 parseIpAddress :: AP.Parser IpAddress
 parseIpAddress = IpAddress <$> I.ipv4Address
+
+splitIpRange :: Range IpAddress -> (IpBlock, Maybe (Range IpAddress))
+splitIpRange (Range (IpAddress a) (IpAddress z)) = (block, remainder)
+  where bpOuter   = 32 - DB.countLeadingZeros (z + 1 - a) - 1
+        bpInner   = DB.countTrailingZeros ((0xffffffff .<. fromIntegral bpOuter) .|. a)
+        block     = IpBlock (IpAddress a) (IpNetMask (32 - fromIntegral bpInner))
+        hostMask  = comp (0xffffffff .<. fromIntegral bpInner) :: Word32
+        remainder = if a + hostMask >= z
+          then Nothing
+          else Just (Range (IpAddress (a + hostMask + 1)) (IpAddress z))
 
 -- assume distinct & sorted input
 collapseIpBlocks :: [IpBlock] -> [IpBlock]
