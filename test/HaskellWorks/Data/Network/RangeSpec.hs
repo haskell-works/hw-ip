@@ -28,3 +28,11 @@ spec = describe "HaskellWorks.Data.Network.RangeSpec" $ do
       R.mergeRanges [R.Range 'a' 'b', R.Range 'b' 'b'] === [R.Range 'a' 'b']
       R.mergeRanges [R.Range 'a' 'f', R.Range 'c' 'e'] === [R.Range 'a' 'f']
       R.mergeRanges [R.Range 'a' 'f', R.Range 'c' 'e', R.Range 'x' 'z'] === [R.Range 'a' 'f', R.Range 'x' 'z']
+
+      let v6Ranges1 = [ R.Range (V6.IpAddress (0, 0, 0, 0)) (V6.IpAddress (0, 0, 0, 20))
+                      , R.Range (V6.IpAddress (0, 0, 0, 21)) (V6.IpAddress (0, 0, 0, 0xffffffff))
+                      , R.Range (V6.IpAddress (0, 0, 1, 0)) (V6.IpAddress (0, 0, 1, 200))
+                      ]
+      let v6Ranges2 = [ R.Range (V6.IpAddress (0, 0, 0, 0)) (V6.IpAddress (0, 0, 1, 200))
+                      ]
+      R.mergeRanges v6Ranges1 === v6Ranges2
