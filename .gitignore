@@ -22,4 +22,4 @@ cabal.sandbox.config
 /*.json
 /*.json.ib
 /*.json.bp
-cabal.project.local
+cabal.project.local*
