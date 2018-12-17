@@ -21,7 +21,7 @@ mergeRanges (r1@(Range f1 l1):r2@(Range f2 l2):rs) =
   if succ l1 >= f2
     then
     let nr = Range f1 (max l1 l2)
-      in mergeRanges (nr:rs)
+    in mergeRanges (nr:rs)
   else r1 : mergeRanges (r2:rs)
 mergeRanges [r] = [r]
 mergeRanges [] = []
