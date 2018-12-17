@@ -23,7 +23,8 @@ import Data.Generics.Product.Any
 import Data.Maybe
 import Data.Word
 import GHC.Generics
-import Prelude                   hiding (words)
+import HaskellWorks.Data.Network.Ip.Range
+import Prelude                            hiding (words)
 import Text.Read
 
 import qualified Data.Attoparsec.Text                  as AP
@@ -121,3 +122,12 @@ fromV4 :: V4.IpBlock -> IpBlock
 fromV4 (V4.IpBlock b m) =
   -- RFC-4291, "IPv4-Mapped IPv6 Address"
   IpBlock (IpAddress (0, 0, 0xFFFF, V4.word b)) (IpNetMask (96 + V4.word8 m))
+
+rangeToBlocksDL :: Range IpAddress -> [IpBlock] -> [IpBlock]
+rangeToBlocksDL = error "TODO implement rangeToBlocksDL"
+
+rangeToBlocks :: Range IpAddress -> [IpBlock]
+rangeToBlocks = error "TODO implement rangeToBlocks"
+
+blockToRange :: IpBlock -> IpAddress
+blockToRange = error "TODO implement blockToRange"
