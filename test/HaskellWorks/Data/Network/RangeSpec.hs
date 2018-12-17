@@ -22,5 +22,7 @@ spec = describe "HaskellWorks.Data.Network.RangeSpec" $ do
       R.mergeRanges [R.Range 3 5, R.Range 6 7] === [R.Range 3 7]
       R.mergeRanges [R.Range 0 5, R.Range 7 7] === [R.Range 0 5, R.Range 7 7]
       R.mergeRanges [R.Range 'a' 'b', R.Range 'c' 'f'] === [R.Range 'a' 'f']
+      R.mergeRanges [R.Range 'a' 'a', R.Range 'c' 'f'] === [R.Range 'a' 'f']
+      R.mergeRanges [R.Range 'a' 'b', R.Range 'b' 'b'] === [R.Range 'a' 'b']
       R.mergeRanges [R.Range 'a' 'f', R.Range 'c' 'e'] === [R.Range 'a' 'f']
       R.mergeRanges [R.Range 'a' 'f', R.Range 'c' 'e', R.Range 'x' 'z'] === [R.Range 'a' 'f', R.Range 'x' 'z']
