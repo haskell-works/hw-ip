@@ -129,5 +129,5 @@ rangeToBlocksDL = error "TODO implement rangeToBlocksDL"
 rangeToBlocks :: Range IpAddress -> [IpBlock]
 rangeToBlocks = error "TODO implement rangeToBlocks"
 
-blockToRange :: IpBlock -> IpAddress
+blockToRange :: IpBlock -> Range IpAddress
 blockToRange = error "TODO implement blockToRange"
