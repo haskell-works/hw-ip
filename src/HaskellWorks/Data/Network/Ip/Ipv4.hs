@@ -195,11 +195,7 @@ rangeToBlocksDL r = do
     Nothing  -> (b:)
 
 rangeToBlocks :: Range IpAddress -> [IpBlock]
-rangeToBlocks r = do
-  let (b, remainder) = splitIpRange r
-  case remainder of
-    Just rem -> b : rangeToBlocks rem
-    Nothing  -> [b]
+rangeToBlocks r = rangeToBlocksDL r []
 
 blockToRange :: IpBlock -> Range IpAddress
 blockToRange (IpBlock (IpAddress w) (IpNetMask m)) = Range fst lst
