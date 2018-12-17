@@ -13,7 +13,7 @@ import qualified HaskellWorks.Data.Network.Ip.Ipv6 as V6
 {-# ANN module ("HLint: ignore Redundant do"  :: String) #-}
 
 spec :: Spec
-spec = describe "HaskellWorks.HUnit.IpSpec" $ do
+spec = describe "HaskellWorks.Data.Network.IpSpec" $ do
   describe "IpBlock" $ do
     it "should implement show" $ requireTest $ do
       show (V.IpBlockV6 (V6.IpBlock (V6.IpAddress (3, 3, 3, 0)) (V6.IpNetMask 96))) === "0:3:0:3:0:3::/96"

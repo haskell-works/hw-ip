@@ -20,7 +20,7 @@ import qualified Text.Read                         as TR
 {-# ANN module ("HLint: ignore Redundant do"  :: String) #-}
 
 spec :: Spec
-spec = describe "HaskellWorks.HUnit.Ipv4Spec" $ do
+spec = describe "HaskellWorks.Data.Network.Ipv4Spec" $ do
   describe "octet" $ do
     it "should go from 0-255" $ require $ property $ do
       b <- forAll $ G.word8 R.constantBounded
