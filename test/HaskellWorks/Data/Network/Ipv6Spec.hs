@@ -41,3 +41,11 @@ spec = describe "HaskellWorks.Data.Network.Ipv6Spec" $ do
       m <- forAll $ G.word8 $ R.linear 0 128
       let addr = V6.IpBlock (V6.IpAddress (a, 0, 0, 0)) (V6.IpNetMask 1)
       V6.parseIpBlock (T.pack (show addr)) === Right addr
+
+    it "should support enum" $ require $ property $ do
+      pred (V6.IpAddress (32, 32, 32, 32)) === V6.IpAddress (32, 32, 32, 31)
+      succ (V6.IpAddress (32, 32, 32, 32)) === V6.IpAddress (32, 32, 32, 33)
+      pred (V6.IpAddress (0, 0, 0, 0xffffffff)) === V6.IpAddress (0, 0, 0, 0xfffffffe)
+      succ (V6.IpAddress (0, 0, 0, 0xffffffff)) === V6.IpAddress (0, 0, 1, 0)
+      succ (V6.IpAddress (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff)) === V6.IpAddress (0, 0, 0, 0)
+      pred (V6.IpAddress (0, 0, 0, 0)) === V6.IpAddress (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff)
