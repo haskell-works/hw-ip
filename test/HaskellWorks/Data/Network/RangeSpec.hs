@@ -2,10 +2,12 @@
 
 module HaskellWorks.Data.Network.RangeSpec (spec) where
 
+import Data.Either
 import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Test.Hspec
 
+import qualified Data.Attoparsec.Text               as AP
 import qualified HaskellWorks.Data.Network.Ip.Ip    as V
 import qualified HaskellWorks.Data.Network.Ip.Ipv4  as V4
 import qualified HaskellWorks.Data.Network.Ip.Ipv6  as V6
