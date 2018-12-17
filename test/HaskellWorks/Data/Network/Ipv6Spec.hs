@@ -19,7 +19,7 @@ import qualified Text.Read                         as TR
 {-# ANN module ("HLint: ignore Redundant do"  :: String) #-}
 
 spec :: Spec
-spec = describe "HaskellWorks.HUnit.IpSpec" $ do
+spec = describe "HaskellWorks.Data.Network.Ipv6Spec" $ do
   describe "V6.IpBlock" $ do
     it "should implement show" $ requireTest $ do
       show (V6.IpBlock (V6.IpAddress (3, 3, 3, 0)) (V6.IpNetMask 96)) === "0:3:0:3:0:3::/96"
