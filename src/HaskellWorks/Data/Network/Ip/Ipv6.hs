@@ -40,6 +40,30 @@ newtype IpAddress = IpAddress
   { words :: (Word32, Word32, Word32, Word32)
   } deriving (Eq, Ord, Generic)
 
+instance Enum IpAddress where
+  fromEnum (IpAddress (a, b, c, d)) = let a' = fromEnum a `B.shift` 96
+                                          b' = fromEnum b `B.shift` 64
+                                          c' = fromEnum c `B.shift` 32
+                                          d' = fromEnum d `B.shift` 00
+                                      in a' B..|. b' B..|. c' B..|. d'
+  toEnum i = let i' = fromIntegral i :: Integer
+                 a  = fromIntegral (i' `B.shiftR` 96 B..&. 0xffffffff)
+                 b  = fromIntegral (i' `B.shiftR` 64 B..&. 0xffffffff)
+                 c  = fromIntegral (i' `B.shiftR` 32 B..&. 0xffffffff)
+                 d  = fromIntegral (i' `B.shiftR` 00 B..&. 0xffffffff)
+             in IpAddress (a, b, c, d)
+  succ (IpAddress (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff)) = IpAddress (0, 0, 0, 0)
+  succ (IpAddress (a,          0xffffffff, 0xffffffff, 0xffffffff)) = IpAddress (succ a, 0, 0, 0)
+  succ (IpAddress (a,                   b, 0xffffffff, 0xffffffff)) = IpAddress (a, succ b, 0, 0)
+  succ (IpAddress (a,                   b,          c, 0xffffffff)) = IpAddress (a, b, succ c, 0)
+  succ (IpAddress (a,                   b,          c,          d)) = IpAddress (a, b, c, succ d)
+
+  pred (IpAddress (0, 0, 0, 0)) = IpAddress (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff)
+  pred (IpAddress (a, 0, 0, 0)) = IpAddress (    pred a, 0xffffffff, 0xffffffff, 0xffffffff)
+  pred (IpAddress (a, b, 0, 0)) = IpAddress (         a,     pred b, 0xffffffff, 0xffffffff)
+  pred (IpAddress (a, b, c, 0)) = IpAddress (         a,          b,     pred c, 0xffffffff)
+  pred (IpAddress (a, b, c, d)) = IpAddress (         a,          b,          c,     pred d)
+
 instance Show IpAddress where
   showsPrec _ (IpAddress w) = shows (D.fromHostAddress6 w)
 
