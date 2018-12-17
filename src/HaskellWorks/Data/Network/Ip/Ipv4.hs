@@ -179,3 +179,12 @@ collapseIpBlocks tomerge =
         skipOverlapped (b1:bs)
       else
         b1 : skipOverlapped (b2:bs)
+
+rangeToBlocksDL :: Range IpAddress -> [IpBlock] -> [IpBlock]
+rangeToBlocksDL = error "TODO implement rangeToBlocksDL"
+
+rangeToBlocks :: Range IpAddress -> [IpBlock]
+rangeToBlocks = error "TODO implement rangeToBlocks"
+
+blockToRange :: IpBlock -> IpAddress
+blockToRange = error "TODO implement blockToRange"
