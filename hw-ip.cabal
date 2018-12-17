@@ -49,6 +49,7 @@ test-suite hw-ip-test
     main-is: Spec.hs
     hs-source-dirs: test
     other-modules:
+        HaskellWorks.Data.Network.Gen
         HaskellWorks.Data.Network.IpBlockSpec
         HaskellWorks.Data.Network.Ipv4Spec
         HaskellWorks.Data.Network.Ipv6Spec

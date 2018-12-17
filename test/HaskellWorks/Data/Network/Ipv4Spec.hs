@@ -2,6 +2,7 @@
 
 module HaskellWorks.Data.Network.Ipv4Spec (spec) where
 
+import HaskellWorks.Data.Bits.BitWise
 import HaskellWorks.Data.Network.Ip.Internal
 import HaskellWorks.Data.Network.Ip.Ipv4
 import HaskellWorks.Data.Network.Ip.Range
@@ -9,14 +10,14 @@ import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Test.Hspec
 
-import qualified Data.Attoparsec.Text               as AP
-import qualified Data.List                          as DL
-import qualified Data.Text                          as T
-import qualified HaskellWorks.Data.Network.Ip.Ipv4  as I
-import qualified HaskellWorks.Data.Network.Ip.Range as R
-import qualified Hedgehog.Gen                       as G
-import qualified Hedgehog.Range                     as R
-import qualified Text.Read                          as TR
+import qualified Data.Attoparsec.Text              as AP
+import qualified Data.List                         as DL
+import qualified Data.Text                         as T
+import qualified HaskellWorks.Data.Network.Gen     as G
+import qualified HaskellWorks.Data.Network.Ip.Ipv4 as V4
+import qualified Hedgehog.Gen                      as G
+import qualified Hedgehog.Range                    as R
+import qualified Text.Read                         as TR
 
 {-# ANN module ("HLint: ignore Redundant do"  :: String) #-}
 
@@ -99,106 +100,106 @@ spec = describe "HaskellWorks.Data.Network.Ipv4Spec" $ do
       collapseIpBlocks (DL.sort ipblocks3) === (read <$> ["1.2.3.0/30", "5.5.5.5/32"])
 
   describe "should split ranges" $ do
-      it "0.0.0.0 - 0.0.0.0" $ requireTest $ do
-        let ip1 = read "0.0.0.0" :: I.IpAddress
-        let ip2 = read "0.0.0.0" :: I.IpAddress
-        I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 32), Nothing)
-      it "0.0.0.1 - 0.0.0.1" $ requireTest $ do
-        let ip1 = read "0.0.0.1" :: I.IpAddress
-        let ip2 = read "0.0.0.1" :: I.IpAddress
-        I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 32), Nothing)
-      it "0.0.0.0 - 0.0.0.1" $ requireTest $ do
-        let ip1 = read "0.0.0.0" :: I.IpAddress
-        let ip2 = read "0.0.0.1" :: I.IpAddress
-        I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 31), Nothing)
-      it "0.0.0.0 - 0.0.0.2" $ requireTest $ do
-        let ip1 = read "0.0.0.0" :: I.IpAddress
-        let ip2 = read "0.0.0.2" :: I.IpAddress
-        I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 31), Just (Range ip2 ip2))
-      it "0.0.0.0 - 0.0.0.3" $ requireTest $ do
-        let ip1 = read "0.0.0.0" :: I.IpAddress
-        let ip2 = read "0.0.0.3" :: I.IpAddress
-        I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 30), Nothing)
-      it "0.0.0.0 - 0.0.0.4" $ requireTest $ do
-        let ip1 = read "0.0.0.0" :: I.IpAddress
-        let ip2 = read "0.0.0.4" :: I.IpAddress
-        I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 30), Just (Range ip2 ip2))
-      it "0.0.0.0 - 0.0.0.5" $ requireTest $ do
-        let ip1 = read "0.0.0.0" :: I.IpAddress
-        let ip2 = read "0.0.0.4" :: I.IpAddress
-        let ip3 = read "0.0.0.5" :: I.IpAddress
-        I.splitIpRange (Range ip1 ip3) === (I.IpBlock ip1 (I.IpNetMask 30), Just (Range ip2 ip3))
-      it "0.0.0.0 - 0.0.0.5" $ requireTest $ do
-        let ip1 = read "0.0.0.0" :: I.IpAddress
-        let ip2 = read "0.0.0.4" :: I.IpAddress
-        let ip3 = read "0.0.0.6" :: I.IpAddress
-        I.splitIpRange (Range ip1 ip3) === (I.IpBlock ip1 (I.IpNetMask 30), Just (Range ip2 ip3))
-      it "0.0.0.0 - 0.0.0.7" $ requireTest $ do
-        let ip1 = read "0.0.0.0" :: I.IpAddress
-        let ip2 = read "0.0.0.7" :: I.IpAddress
-        I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 29), Nothing)
-      it "0.0.0.1 - 0.0.0.7" $ requireTest $ do
-        let ip1 = read "0.0.0.1" :: I.IpAddress
-        let ip2 = read "0.0.0.2" :: I.IpAddress
-        let ip3 = read "0.0.0.7" :: I.IpAddress
-        I.splitIpRange (Range ip1 ip3) === (I.IpBlock ip1 (I.IpNetMask 32), Just (Range ip2 ip3))
-      it "0.0.0.2 - 0.0.0.7" $ requireTest $ do
-        let ip1 = read "0.0.0.2" :: I.IpAddress
-        let ip2 = read "0.0.0.4" :: I.IpAddress
-        let ip3 = read "0.0.0.7" :: I.IpAddress
-        I.splitIpRange (Range ip1 ip3) === (I.IpBlock ip1 (I.IpNetMask 31), Just (Range ip2 ip3))
-      it "0.0.0.3 - 0.0.0.7" $ requireTest $ do
-        let ip1 = read "0.0.0.3" :: I.IpAddress
-        let ip2 = read "0.0.0.4" :: I.IpAddress
-        let ip3 = read "0.0.0.7" :: I.IpAddress
-        I.splitIpRange (Range ip1 ip3) === (I.IpBlock ip1 (I.IpNetMask 32), Just (Range ip2 ip3))
-      it "0.0.0.4 - 0.0.0.7" $ requireTest $ do
-        let ip1 = read "0.0.0.4" :: I.IpAddress
-        let ip2 = read "0.0.0.7" :: I.IpAddress
-        I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 30), Nothing)
-      it "0.0.0.5 - 0.0.0.7" $ requireTest $ do
-        let ip1 = read "0.0.0.5" :: I.IpAddress
-        let ip2 = read "0.0.0.6" :: I.IpAddress
-        let ip3 = read "0.0.0.7" :: I.IpAddress
-        I.splitIpRange (Range ip1 ip3) === (I.IpBlock ip1 (I.IpNetMask 32), Just (Range ip2 ip3))
-      it "0.0.0.6 - 0.0.0.7" $ requireTest $ do
-        let ip1 = read "0.0.0.6" :: I.IpAddress
-        let ip2 = read "0.0.0.7" :: I.IpAddress
-        I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 31), Nothing)
-      it "0.0.0.7 - 0.0.0.7" $ requireTest $ do
-        let ip1 = read "0.0.0.7" :: I.IpAddress
-        I.splitIpRange (Range ip1 ip1) === (I.IpBlock ip1 (I.IpNetMask 32), Nothing)
-      it "0.0.0.6 - 0.0.0.6" $ requireTest $ do
-        let ip1 = read "0.0.0.6" :: I.IpAddress
-        I.splitIpRange (Range ip1 ip1) === (I.IpBlock ip1 (I.IpNetMask 32), Nothing)
-      it "255.255.255.255 - 255.255.255.255" $ requireTest $ do
-        let ip1 = read "255.255.255.255" :: I.IpAddress
-        I.splitIpRange (Range ip1 ip1) === (I.IpBlock ip1 (I.IpNetMask 32), Nothing)
-      it "128.0.0.0 - 255.255.255.255" $ requireTest $ do
-        let ip1 = read "128.0.0.0"        :: I.IpAddress
-        let ip2 = read "255.255.255.255"  :: I.IpAddress
-        I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 1), Nothing)
-      it "0.0.0.0 - 255.255.255.255" $ requireTest $ do
-        let ip1 = read "0.0.0.0"          :: I.IpAddress
-        let ip2 = read "255.255.255.255"  :: I.IpAddress
-        I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 0), Nothing)
+    it "0.0.0.0 - 0.0.0.0" $ requireTest $ do
+      let ip1 = read "0.0.0.0" :: I.IpAddress
+      let ip2 = read "0.0.0.0" :: I.IpAddress
+      I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 32), Nothing)
+    it "0.0.0.1 - 0.0.0.1" $ requireTest $ do
+      let ip1 = read "0.0.0.1" :: I.IpAddress
+      let ip2 = read "0.0.0.1" :: I.IpAddress
+      I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 32), Nothing)
+    it "0.0.0.0 - 0.0.0.1" $ requireTest $ do
+      let ip1 = read "0.0.0.0" :: I.IpAddress
+      let ip2 = read "0.0.0.1" :: I.IpAddress
+      I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 31), Nothing)
+    it "0.0.0.0 - 0.0.0.2" $ requireTest $ do
+      let ip1 = read "0.0.0.0" :: I.IpAddress
+      let ip2 = read "0.0.0.2" :: I.IpAddress
+      I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 31), Just (Range ip2 ip2))
+    it "0.0.0.0 - 0.0.0.3" $ requireTest $ do
+      let ip1 = read "0.0.0.0" :: I.IpAddress
+      let ip2 = read "0.0.0.3" :: I.IpAddress
+      I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 30), Nothing)
+    it "0.0.0.0 - 0.0.0.4" $ requireTest $ do
+      let ip1 = read "0.0.0.0" :: I.IpAddress
+      let ip2 = read "0.0.0.4" :: I.IpAddress
+      I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 30), Just (Range ip2 ip2))
+    it "0.0.0.0 - 0.0.0.5" $ requireTest $ do
+      let ip1 = read "0.0.0.0" :: I.IpAddress
+      let ip2 = read "0.0.0.4" :: I.IpAddress
+      let ip3 = read "0.0.0.5" :: I.IpAddress
+      I.splitIpRange (Range ip1 ip3) === (I.IpBlock ip1 (I.IpNetMask 30), Just (Range ip2 ip3))
+    it "0.0.0.0 - 0.0.0.5" $ requireTest $ do
+      let ip1 = read "0.0.0.0" :: I.IpAddress
+      let ip2 = read "0.0.0.4" :: I.IpAddress
+      let ip3 = read "0.0.0.6" :: I.IpAddress
+      I.splitIpRange (Range ip1 ip3) === (I.IpBlock ip1 (I.IpNetMask 30), Just (Range ip2 ip3))
+    it "0.0.0.0 - 0.0.0.7" $ requireTest $ do
+      let ip1 = read "0.0.0.0" :: I.IpAddress
+      let ip2 = read "0.0.0.7" :: I.IpAddress
+      I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 29), Nothing)
+    it "0.0.0.1 - 0.0.0.7" $ requireTest $ do
+      let ip1 = read "0.0.0.1" :: I.IpAddress
+      let ip2 = read "0.0.0.2" :: I.IpAddress
+      let ip3 = read "0.0.0.7" :: I.IpAddress
+      I.splitIpRange (Range ip1 ip3) === (I.IpBlock ip1 (I.IpNetMask 32), Just (Range ip2 ip3))
+    it "0.0.0.2 - 0.0.0.7" $ requireTest $ do
+      let ip1 = read "0.0.0.2" :: I.IpAddress
+      let ip2 = read "0.0.0.4" :: I.IpAddress
+      let ip3 = read "0.0.0.7" :: I.IpAddress
+      I.splitIpRange (Range ip1 ip3) === (I.IpBlock ip1 (I.IpNetMask 31), Just (Range ip2 ip3))
+    it "0.0.0.3 - 0.0.0.7" $ requireTest $ do
+      let ip1 = read "0.0.0.3" :: I.IpAddress
+      let ip2 = read "0.0.0.4" :: I.IpAddress
+      let ip3 = read "0.0.0.7" :: I.IpAddress
+      I.splitIpRange (Range ip1 ip3) === (I.IpBlock ip1 (I.IpNetMask 32), Just (Range ip2 ip3))
+    it "0.0.0.4 - 0.0.0.7" $ requireTest $ do
+      let ip1 = read "0.0.0.4" :: I.IpAddress
+      let ip2 = read "0.0.0.7" :: I.IpAddress
+      I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 30), Nothing)
+    it "0.0.0.5 - 0.0.0.7" $ requireTest $ do
+      let ip1 = read "0.0.0.5" :: I.IpAddress
+      let ip2 = read "0.0.0.6" :: I.IpAddress
+      let ip3 = read "0.0.0.7" :: I.IpAddress
+      I.splitIpRange (Range ip1 ip3) === (I.IpBlock ip1 (I.IpNetMask 32), Just (Range ip2 ip3))
+    it "0.0.0.6 - 0.0.0.7" $ requireTest $ do
+      let ip1 = read "0.0.0.6" :: I.IpAddress
+      let ip2 = read "0.0.0.7" :: I.IpAddress
+      I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 31), Nothing)
+    it "0.0.0.7 - 0.0.0.7" $ requireTest $ do
+      let ip1 = read "0.0.0.7" :: I.IpAddress
+      I.splitIpRange (Range ip1 ip1) === (I.IpBlock ip1 (I.IpNetMask 32), Nothing)
+    it "0.0.0.6 - 0.0.0.6" $ requireTest $ do
+      let ip1 = read "0.0.0.6" :: I.IpAddress
+      I.splitIpRange (Range ip1 ip1) === (I.IpBlock ip1 (I.IpNetMask 32), Nothing)
+    it "255.255.255.255 - 255.255.255.255" $ requireTest $ do
+      let ip1 = read "255.255.255.255" :: I.IpAddress
+      I.splitIpRange (Range ip1 ip1) === (I.IpBlock ip1 (I.IpNetMask 32), Nothing)
+    it "128.0.0.0 - 255.255.255.255" $ requireTest $ do
+      let ip1 = read "128.0.0.0"        :: I.IpAddress
+      let ip2 = read "255.255.255.255"  :: I.IpAddress
+      I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 1), Nothing)
+    it "0.0.0.0 - 255.255.255.255" $ requireTest $ do
+      let ip1 = read "0.0.0.0"          :: I.IpAddress
+      let ip2 = read "255.255.255.255"  :: I.IpAddress
+      I.splitIpRange (Range ip1 ip2) === (I.IpBlock ip1 (I.IpNetMask 0), Nothing)
 
   describe "should get blocks from ranges" $ do
-      it "0.0.0.1 - 0.0.0.2" $ requireTest $ do
-        I.rangeToBlocks (R.Range (I.IpAddress 0x000001) (I.IpAddress 0x000002)) === [ I.IpBlock (I.IpAddress 0x000001) (I.IpNetMask 32)
-                                                                                    , I.IpBlock (I.IpAddress 0x000002) (I.IpNetMask 32)]
-      it "102.36.48.28 - 102.36.48.255" $ requireTest $ do
-        I.rangeToBlocks (R.Range (I.IpAddress 0x6624301c) (I.IpAddress 0x662430ff)) === [ I.IpBlock (I.IpAddress 0x6624301c) (I.IpNetMask 30)
-                                                                                        , I.IpBlock (I.IpAddress 0x66243020) (I.IpNetMask 27)
-                                                                                        , I.IpBlock (I.IpAddress 0x66243040) (I.IpNetMask 26)
-                                                                                        , I.IpBlock (I.IpAddress 0x66243080) (I.IpNetMask 25)]
+    it "0.0.0.1 - 0.0.0.2" $ requireTest $ do
+      I.rangeToBlocks (R.Range (I.IpAddress 0x000001) (I.IpAddress 0x000002)) === [ I.IpBlock (I.IpAddress 0x000001) (I.IpNetMask 32)
+                                                                                  , I.IpBlock (I.IpAddress 0x000002) (I.IpNetMask 32)]
+    it "102.36.48.28 - 102.36.48.255" $ requireTest $ do
+      I.rangeToBlocks (R.Range (I.IpAddress 0x6624301c) (I.IpAddress 0x662430ff)) === [ I.IpBlock (I.IpAddress 0x6624301c) (I.IpNetMask 30)
+                                                                                      , I.IpBlock (I.IpAddress 0x66243020) (I.IpNetMask 27)
+                                                                                      , I.IpBlock (I.IpAddress 0x66243040) (I.IpNetMask 26)
+                                                                                      , I.IpBlock (I.IpAddress 0x66243080) (I.IpNetMask 25)]
 
-      it "102.36.48.2 - 102.36.48.8" $ requireTest $ do
-        I.rangeToBlocks (R.Range (I.IpAddress 0x66243002) (I.IpAddress 0x66243008)) === [ I.IpBlock (I.IpAddress 0x66243002) (I.IpNetMask 31)
-                                                                                        , I.IpBlock (I.IpAddress 0x66243004) (I.IpNetMask 30)
-                                                                                        , I.IpBlock (I.IpAddress 0x66243008) (I.IpNetMask 32)]
+    it "102.36.48.2 - 102.36.48.8" $ requireTest $ do
+      I.rangeToBlocks (R.Range (I.IpAddress 0x66243002) (I.IpAddress 0x66243008)) === [ I.IpBlock (I.IpAddress 0x66243002) (I.IpNetMask 31)
+                                                                                      , I.IpBlock (I.IpAddress 0x66243004) (I.IpNetMask 30)
+                                                                                      , I.IpBlock (I.IpAddress 0x66243008) (I.IpNetMask 32)]
 
   describe "should get blocks from ranges with difference lists" $ do
-      it "0.0.0.1 - 0.0.0.2" $ requireTest $ do
-        I.rangeToBlocksDL (R.Range (I.IpAddress 0x000001) (I.IpAddress 0x000002)) [] === [ I.IpBlock (I.IpAddress 0x000001) (I.IpNetMask 32)
-                                                                                         , I.IpBlock (I.IpAddress 0x000002) (I.IpNetMask 32)]
+    it "0.0.0.1 - 0.0.0.2" $ requireTest $ do
+      I.rangeToBlocksDL (R.Range (I.IpAddress 0x000001) (I.IpAddress 0x000002)) [] === [ I.IpBlock (I.IpAddress 0x000001) (I.IpNetMask 32)
+                                                                                        , I.IpBlock (I.IpAddress 0x000002) (I.IpNetMask 32)]

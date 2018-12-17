@@ -202,4 +202,6 @@ rangeToBlocks r = do
     Nothing  -> [b]
 
 blockToRange :: IpBlock -> Range IpAddress
-blockToRange = error "TODO implement blockToRange"
+blockToRange (IpBlock (IpAddress w) (IpNetMask m)) = Range fst lst
+  where fst = IpAddress w
+        lst = IpAddress (w + ((0xffffffff .<. fromIntegral m) .>. fromIntegral m))
