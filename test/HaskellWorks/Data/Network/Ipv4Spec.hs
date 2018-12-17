@@ -10,14 +10,15 @@ import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Test.Hspec
 
-import qualified Data.Attoparsec.Text              as AP
-import qualified Data.List                         as DL
-import qualified Data.Text                         as T
-import qualified HaskellWorks.Data.Network.Gen     as G
-import qualified HaskellWorks.Data.Network.Ip.Ipv4 as V4
-import qualified Hedgehog.Gen                      as G
-import qualified Hedgehog.Range                    as R
-import qualified Text.Read                         as TR
+import qualified Data.Attoparsec.Text               as AP
+import qualified Data.List                          as DL
+import qualified Data.Text                          as T
+import qualified HaskellWorks.Data.Network.Gen      as G
+import qualified HaskellWorks.Data.Network.Ip.Ipv4  as I
+import qualified HaskellWorks.Data.Network.Ip.Range as I
+import qualified Hedgehog.Gen                       as G
+import qualified Hedgehog.Range                     as R
+import qualified Text.Read                          as TR
 
 {-# ANN module ("HLint: ignore Redundant do"  :: String) #-}
 
@@ -186,20 +187,20 @@ spec = describe "HaskellWorks.Data.Network.Ipv4Spec" $ do
 
   describe "should get blocks from ranges" $ do
     it "0.0.0.1 - 0.0.0.2" $ requireTest $ do
-      I.rangeToBlocks (R.Range (I.IpAddress 0x000001) (I.IpAddress 0x000002)) === [ I.IpBlock (I.IpAddress 0x000001) (I.IpNetMask 32)
+      I.rangeToBlocks (I.Range (I.IpAddress 0x000001) (I.IpAddress 0x000002)) === [ I.IpBlock (I.IpAddress 0x000001) (I.IpNetMask 32)
                                                                                   , I.IpBlock (I.IpAddress 0x000002) (I.IpNetMask 32)]
     it "102.36.48.28 - 102.36.48.255" $ requireTest $ do
-      I.rangeToBlocks (R.Range (I.IpAddress 0x6624301c) (I.IpAddress 0x662430ff)) === [ I.IpBlock (I.IpAddress 0x6624301c) (I.IpNetMask 30)
+      I.rangeToBlocks (I.Range (I.IpAddress 0x6624301c) (I.IpAddress 0x662430ff)) === [ I.IpBlock (I.IpAddress 0x6624301c) (I.IpNetMask 30)
                                                                                       , I.IpBlock (I.IpAddress 0x66243020) (I.IpNetMask 27)
                                                                                       , I.IpBlock (I.IpAddress 0x66243040) (I.IpNetMask 26)
                                                                                       , I.IpBlock (I.IpAddress 0x66243080) (I.IpNetMask 25)]
 
     it "102.36.48.2 - 102.36.48.8" $ requireTest $ do
-      I.rangeToBlocks (R.Range (I.IpAddress 0x66243002) (I.IpAddress 0x66243008)) === [ I.IpBlock (I.IpAddress 0x66243002) (I.IpNetMask 31)
+      I.rangeToBlocks (I.Range (I.IpAddress 0x66243002) (I.IpAddress 0x66243008)) === [ I.IpBlock (I.IpAddress 0x66243002) (I.IpNetMask 31)
                                                                                       , I.IpBlock (I.IpAddress 0x66243004) (I.IpNetMask 30)
                                                                                       , I.IpBlock (I.IpAddress 0x66243008) (I.IpNetMask 32)]
 
   describe "should get blocks from ranges with difference lists" $ do
     it "0.0.0.1 - 0.0.0.2" $ requireTest $ do
-      I.rangeToBlocksDL (R.Range (I.IpAddress 0x000001) (I.IpAddress 0x000002)) [] === [ I.IpBlock (I.IpAddress 0x000001) (I.IpNetMask 32)
+      I.rangeToBlocksDL (I.Range (I.IpAddress 0x000001) (I.IpAddress 0x000002)) [] === [ I.IpBlock (I.IpAddress 0x000001) (I.IpNetMask 32)
                                                                                         , I.IpBlock (I.IpAddress 0x000002) (I.IpNetMask 32)]
