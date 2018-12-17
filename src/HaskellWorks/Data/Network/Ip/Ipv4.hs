@@ -24,6 +24,9 @@ module HaskellWorks.Data.Network.Ip.Ipv4
   , canonicaliseIpBlock
   , collapseIpBlocks
   , splitIpRange
+  , rangeToBlocksDL
+  , rangeToBlocks
+  , blockToRange
   ) where
 
 import Control.Applicative
@@ -185,10 +188,18 @@ collapseIpBlocks tomerge =
         b1 : skipOverlapped (b2:bs)
 
 rangeToBlocksDL :: Range IpAddress -> [IpBlock] -> [IpBlock]
-rangeToBlocksDL = error "TODO implement rangeToBlocksDL"
+rangeToBlocksDL r = do
+  let (b, remainder) = splitIpRange r
+  case remainder of
+    Just rem -> (b:) . rangeToBlocksDL rem
+    Nothing  -> (b:)
 
 rangeToBlocks :: Range IpAddress -> [IpBlock]
-rangeToBlocks = error "TODO implement rangeToBlocks"
+rangeToBlocks r = do
+  let (b, remainder) = splitIpRange r
+  case remainder of
+    Just rem -> b : rangeToBlocks rem
+    Nothing  -> [b]
 
 blockToRange :: IpBlock -> Range IpAddress
 blockToRange = error "TODO implement blockToRange"
