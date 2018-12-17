@@ -15,8 +15,9 @@ module HaskellWorks.Data.Network.Ip.Ipv4
   , splitBlock
   , textToMaybeIpAddress
   , parseIpAddress
-  , ipAddressToString
-  , ipAddressToText
+  , showIpAddress
+  , showsIpAddress
+  , tshowIpAddress
   , ipAddressToWords
   , firstIpAddress
   , lastIpAddress
@@ -49,11 +50,7 @@ newtype IpAddress = IpAddress
   } deriving (Enum, Eq, Ord, Generic)
 
 instance Show IpAddress where
-  showsPrec _ (IpAddress w) =
-    shows ((w .>. 24) .&. 0xff) . ('.':) .
-    shows ((w .>. 16) .&. 0xff) . ('.':) .
-    shows ((w .>.  8) .&. 0xff) . ('.':) .
-    shows ( w         .&. 0xff)
+  showsPrec _ = showsIpAddress
 
 instance Read IpAddress where
   readsPrec :: Int -> String -> [(IpAddress, String)]
@@ -125,11 +122,18 @@ blockSize (IpBlock _ m) = 2 ^ bitPower m
 textToMaybeIpAddress :: T.Text -> Maybe IpAddress
 textToMaybeIpAddress t = AP.maybeResult =<< AP.parseWith (return mempty) parseIpAddress t
 
-ipAddressToString :: IpAddress -> String
-ipAddressToString = show
+showsIpAddress :: IpAddress -> String -> String
+showsIpAddress (IpAddress w) =
+  shows ((w .>. 24) .&. 0xff) . ('.':) .
+  shows ((w .>. 16) .&. 0xff) . ('.':) .
+  shows ((w .>.  8) .&. 0xff) . ('.':) .
+  shows ( w         .&. 0xff)
 
-ipAddressToText :: IpAddress -> T.Text
-ipAddressToText = T.pack . ipAddressToString
+showIpAddress :: IpAddress -> String
+showIpAddress ipAddress = showsIpAddress ipAddress ""
+
+tshowIpAddress :: IpAddress -> T.Text
+tshowIpAddress = T.pack . showIpAddress
 
 ipAddressToWords :: IpAddress -> (Word8, Word8, Word8, Word8)
 ipAddressToWords (IpAddress w) =
