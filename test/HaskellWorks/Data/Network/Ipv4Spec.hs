@@ -204,3 +204,8 @@ spec = describe "HaskellWorks.Data.Network.Ipv4Spec" $ do
     it "0.0.0.1 - 0.0.0.2" $ requireTest $ do
       I.rangeToBlocksDL (I.Range (I.IpAddress 0x000001) (I.IpAddress 0x000002)) [] === [ I.IpBlock (I.IpAddress 0x000001) (I.IpNetMask 32)
                                                                                         , I.IpBlock (I.IpAddress 0x000002) (I.IpNetMask 32)]
+
+  it "block can be converted to range and back" $ require $ property $ do
+    b <- forAll G.canonicalIpv4Block
+    I.splitIpRange (I.blockToRange b) === (b, Nothing)
+
