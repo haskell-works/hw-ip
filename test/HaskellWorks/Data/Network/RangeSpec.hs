@@ -20,7 +20,7 @@ import qualified HaskellWorks.Data.Network.Ip.Range as R
 spec :: Spec
 spec = describe "HaskellWorks.Data.Network.RangeSpec" $ do
   describe "Range" $ do
-    it "should be tested" $ requireTest $ do
+    it "should be mergeable" $ requireTest $ do
       R.mergeRanges [] === ([] :: [R.Range Int])
       R.mergeRanges @Int [R.Range 0 5] === [R.Range 0 5]
       R.mergeRanges @Int [R.Range 3 5, R.Range 6 7] === [R.Range 3 7]
@@ -38,3 +38,8 @@ spec = describe "HaskellWorks.Data.Network.RangeSpec" $ do
       let v6Ranges2 = [ R.Range (V6.IpAddress (0, 0, 0, 0)) (V6.IpAddress (0, 0, 1, 200))
                       ]
       R.mergeRanges v6Ranges1 === v6Ranges2
+
+    it "should parse dash-delimited ranges" $ requireTest $ do
+      AP.parseOnly (R.parseRange AP.decimal) "1 2" === Left "string"
+      AP.parseOnly (R.parseRange AP.decimal) "1 - 2" === Right (R.Range 1 2)
+      AP.parseOnly (R.parseRange AP.anyChar) "a - b" === Right (R.Range 'a' 'b')
