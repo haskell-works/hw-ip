@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE OverloadedStrings     #-}
 
@@ -17,6 +18,7 @@ import Data.Maybe
 import Data.Word
 import GHC.Generics
 import HaskellWorks.Data.Bits.BitWise
+import HaskellWorks.Data.Network.Ip.Validity
 import Text.Read
 
 import qualified Data.Attoparsec.Text                  as AP
@@ -27,32 +29,32 @@ import qualified HaskellWorks.Data.Network.Ip.Ipv4     as V4
 import qualified HaskellWorks.Data.Network.Ip.Ipv6     as V6
 import qualified Text.ParserCombinators.ReadPrec       as RP
 
-data IpBlock = IpBlockV4 V4.IpBlock | IpBlockV6 V6.IpBlock
+data IpBlock v = IpBlockV4 (V4.IpBlock v) | IpBlockV6 (V6.IpBlock v)
   deriving (Eq, Ord, Generic)
 
-instance Show IpBlock where
+instance Show (IpBlock Unaligned) where
   showsPrec _ (IpBlockV4 a) = shows a
   showsPrec _ (IpBlockV6 a) = shows a
 
-instance Read IpBlock where
+instance Read (IpBlock Unaligned) where
   readsPrec _ s =
-    case readMaybe s :: Maybe V4.IpBlock of
+    case readMaybe s :: Maybe (V4.IpBlock Unaligned) of
       Just ip -> [(IpBlockV4 ip, "")]
 
       Nothing ->
-        case readMaybe s :: Maybe V6.IpBlock of
+        case readMaybe s :: Maybe (V6.IpBlock Unaligned) of
           Just ipv6 -> [(IpBlockV6 ipv6, "")]
           Nothing   -> []
 
-isValidIpBlock :: IpBlock -> Bool
+isValidIpBlock :: IpBlock v -> Bool
 isValidIpBlock (IpBlockV4 b) = V4.isValidIpBlock b
 isValidIpBlock (IpBlockV6 b) = V6.isValidIpBlock b
 
-firstIpAddress :: IpBlock -> (Word32, Word32, Word32, Word32)
+firstIpAddress :: IpBlock Canonical -> (Word32, Word32, Word32, Word32)
 firstIpAddress (IpBlockV4 v4Block)           = firstIpAddress (IpBlockV6 (V6.fromV4 v4Block))
 firstIpAddress (IpBlockV6 (V6.IpBlock ip _)) = V6.words ip
 
-lastIpAddress :: IpBlock -> (Word32, Word32, Word32, Word32)
+lastIpAddress :: IpBlock Canonical -> (Word32, Word32, Word32, Word32)
 lastIpAddress (IpBlockV4 ib) = (0, 0, 0xFFFF, V4.word (V4.lastIpAddress ib))
 lastIpAddress (IpBlockV6 (V6.IpBlock ip (V6.IpNetMask msk))) =
     let (w1, w2, w3, w4) = V6.words ip

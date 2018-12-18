@@ -1,6 +1,7 @@
 {-# LANGUAGE BangPatterns               #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DuplicateRecordFields      #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs               #-}
 
@@ -37,6 +38,7 @@ import Data.Word
 import GHC.Generics
 import HaskellWorks.Data.Bits.BitWise
 import HaskellWorks.Data.Network.Ip.Range
+import HaskellWorks.Data.Network.Ip.Validity
 import Text.Read
 
 import qualified Data.Attoparsec.Text                  as AP
@@ -67,16 +69,26 @@ newtype IpNetMask = IpNetMask
   { word8 :: Word8
   } deriving (Enum, Bounded, Eq, Ord, Show, Generic)
 
-data IpBlock = IpBlock
+data IpBlock v = IpBlock
   { base :: !IpAddress
   , mask :: !IpNetMask
   } deriving (Eq, Ord, Generic)
 
-instance Show IpBlock where
+instance Show (IpBlock v) where
   showsPrec _ (IpBlock b (IpNetMask m)) = shows b . ('/':) . shows m
 
-instance Read IpBlock where
-  readsPrec :: Int -> String -> [(IpBlock, String)]
+instance Read (IpBlock Unaligned) where
+  readsPrec :: Int -> String -> [(IpBlock Unaligned, String)]
+  readsPrec _ s = case AP.parseWith (return mempty) (I.whitespace *> I.ipv4Block) (T.pack s) of
+    Just result -> case result of
+      AP.Done i (a, m) -> [(IpBlock (IpAddress a) (IpNetMask m), T.unpack i)]
+      AP.Partial _     -> []
+      AP.Fail a b c    -> []
+    Nothing -> []
+
+instance Read (IpBlock Canonical) where
+  -- TODO Check for canonicalness
+  readsPrec :: Int -> String -> [(IpBlock Canonical, String)]
   readsPrec _ s = case AP.parseWith (return mempty) (I.whitespace *> I.ipv4Block) (T.pack s) of
     Just result -> case result of
       AP.Done i (a, m) -> [(IpBlock (IpAddress a) (IpNetMask m), T.unpack i)]
@@ -85,25 +97,28 @@ instance Read IpBlock where
     Nothing -> []
 
 -- | A valid block must have all host-bits set to zero after the mask is applied
-isValidIpBlock :: IpBlock -> Bool
+isValidIpBlock :: IpBlock v -> Bool
 isValidIpBlock (IpBlock (IpAddress word) (IpNetMask mask)) = word .<. fromIntegral mask == 0
 
 -- | Canonicalise the block by zero-ing out the host bits
-canonicaliseIpBlock :: IpBlock -> IpBlock
+canonicaliseIpBlock :: IpBlock v -> IpBlock Canonical
 canonicaliseIpBlock (IpBlock (IpAddress word) (IpNetMask mask)) = IpBlock (IpAddress newWord) (IpNetMask mask)
   where bp = fromIntegral (32 - mask)
         newWord = (word .>. bp) .<. bp
 
-firstIpAddress :: IpBlock -> IpAddress
+firstIpAddress :: IpBlock v -> IpAddress
 firstIpAddress (IpBlock base _) = base
 
-lastIpAddress :: IpBlock -> IpAddress
+lastIpAddress :: IpBlock v -> IpAddress
 lastIpAddress b@(IpBlock (IpAddress base) (IpNetMask m)) = IpAddress (base + fromIntegral (I.blockSize m) - 1)
 
-isCanonical :: IpBlock -> Bool
+bitPower :: IpNetMask -> Word64
+bitPower (IpNetMask m) = fromIntegral (32 - m)
+
+isCanonical :: IpBlock v -> Bool
 isCanonical (IpBlock (IpAddress b) (IpNetMask m)) = ((b .>. I.bitPower m) .<. I.bitPower m) == b
 
-splitBlock :: IpBlock -> Maybe (IpBlock, IpBlock)
+splitBlock :: IpBlock Canonical -> Maybe (IpBlock Canonical, IpBlock Canonical)
 splitBlock (IpBlock (IpAddress b) (IpNetMask m)) =
   if m >= 0 && m < 32
     then  let !hm       = m + 1
@@ -142,7 +157,7 @@ ipAddressToWords (IpAddress w) =
 parseIpAddress :: AP.Parser IpAddress
 parseIpAddress = IpAddress <$> I.ipv4Address
 
-splitIpRange :: Range IpAddress -> (IpBlock, Maybe (Range IpAddress))
+splitIpRange :: Range IpAddress -> (IpBlock Canonical, Maybe (Range IpAddress))
 splitIpRange (Range (IpAddress a) (IpAddress z)) = (block, remainder)
   where bpOuter   = 32 - DB.countLeadingZeros (z + 1 - a) - 1
         bpInner   = DB.countTrailingZeros ((0xffffffff .<. fromIntegral bpOuter) .|. a)
@@ -153,11 +168,11 @@ splitIpRange (Range (IpAddress a) (IpAddress z)) = (block, remainder)
           else Just (Range (IpAddress (a + hostMask + 1)) (IpAddress z))
 
 -- assume distinct & sorted input
-collapseIpBlocks :: [IpBlock] -> [IpBlock]
+collapseIpBlocks :: [IpBlock Canonical] -> [IpBlock Canonical]
 collapseIpBlocks tomerge =
   skipOverlapped $ concat $ toList <$> go S.empty tomerge
   where
-    go :: S.Seq IpBlock -> [IpBlock] -> [S.Seq IpBlock]
+    go :: S.Seq (IpBlock Canonical) -> [IpBlock Canonical] -> [S.Seq (IpBlock Canonical)]
     go m [] = [m]
     go m (b:bs) =
       case S.viewr m of
@@ -180,15 +195,15 @@ collapseIpBlocks tomerge =
       else
         b1 : skipOverlapped (b2:bs)
 
-rangeToBlocksDL :: Range IpAddress -> [IpBlock] -> [IpBlock]
+rangeToBlocksDL :: Range IpAddress -> [IpBlock Canonical] -> [IpBlock Canonical]
 rangeToBlocksDL r = do
   let (b, remainder) = splitIpRange r
   case remainder of
     Just rem -> (b:) . rangeToBlocksDL rem
     Nothing  -> (b:)
 
-rangeToBlocks :: Range IpAddress -> [IpBlock]
+rangeToBlocks :: Range IpAddress -> [IpBlock Canonical]
 rangeToBlocks r = rangeToBlocksDL r []
 
-blockToRange :: IpBlock -> Range IpAddress
+blockToRange :: IpBlock Canonical -> Range IpAddress
 blockToRange b = uncurry Range $ bimap firstIpAddress lastIpAddress (b, b)
