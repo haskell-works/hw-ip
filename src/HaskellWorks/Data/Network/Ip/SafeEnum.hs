@@ -60,6 +60,14 @@ instance SafeEnum Bool where
   safePred = defaultSafePred
   safeSucc = defaultSafeSucc
 
+instance SafeEnum () where
+  safePred = defaultSafePred
+  safeSucc = defaultSafeSucc
+
+instance SafeEnum Integer where
+  safePred = Just . pred
+  safeSucc = Just . succ
+
 boundedPred :: SafeEnum a => a -> a
 boundedPred a = fromMaybe a (safePred a)
 
