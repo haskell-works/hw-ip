@@ -1,4 +1,6 @@
+{-# LANGUAGE MonoLocalBinds    #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module HaskellWorks.Data.Network.RangeSpec (spec) where
 
@@ -20,9 +22,9 @@ spec = describe "HaskellWorks.Data.Network.RangeSpec" $ do
   describe "Range" $ do
     it "should be tested" $ requireTest $ do
       R.mergeRanges [] === ([] :: [R.Range Int])
-      R.mergeRanges [R.Range 0 5] === [R.Range 0 5]
-      R.mergeRanges [R.Range 3 5, R.Range 6 7] === [R.Range 3 7]
-      R.mergeRanges [R.Range 0 5, R.Range 7 7] === [R.Range 0 5, R.Range 7 7]
+      R.mergeRanges @Int [R.Range 0 5] === [R.Range 0 5]
+      R.mergeRanges @Int [R.Range 3 5, R.Range 6 7] === [R.Range 3 7]
+      R.mergeRanges @Int [R.Range 0 5, R.Range 7 7] === [R.Range 0 5, R.Range 7 7]
       R.mergeRanges [R.Range 'a' 'b', R.Range 'c' 'f'] === [R.Range 'a' 'f']
       R.mergeRanges [R.Range 'a' 'a', R.Range 'a' 'f'] === [R.Range 'a' 'f']
       R.mergeRanges [R.Range 'a' 'b', R.Range 'b' 'b'] === [R.Range 'a' 'b']
