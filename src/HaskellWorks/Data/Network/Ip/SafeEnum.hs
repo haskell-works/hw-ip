@@ -1,3 +1,6 @@
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+
 module HaskellWorks.Data.Network.Ip.SafeEnum
   ( SafeEnum(..)
   , boundedPred
@@ -7,6 +10,7 @@ module HaskellWorks.Data.Network.Ip.SafeEnum
 import Data.Int
 import Data.Maybe
 import Data.Word
+import HaskellWorks.Data.Network.Ip.Word128
 
 class SafeEnum a where
   safePred :: a -> Maybe a
@@ -29,6 +33,10 @@ instance SafeEnum Word32 where
   safeSucc = defaultSafeSucc
 
 instance SafeEnum Word64 where
+  safePred = defaultSafePred
+  safeSucc = defaultSafeSucc
+
+instance SafeEnum Word128 where
   safePred = defaultSafePred
   safeSucc = defaultSafeSucc
 
@@ -78,4 +86,4 @@ defaultSafePred :: (Bounded a, Enum a, Eq a) => a -> Maybe a
 defaultSafePred v = if v /= minBound then Just (pred v) else Nothing
 
 defaultSafeSucc :: (Bounded a, Enum a, Eq a) => a -> Maybe a
-defaultSafeSucc v = if v /= minBound then Just (succ v) else Nothing
+defaultSafeSucc v = if v /= maxBound then Just (succ v) else Nothing

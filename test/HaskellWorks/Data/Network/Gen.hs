@@ -21,7 +21,7 @@ canonicalIpv4Block = do
   w <- G.word32  (R.linear 0 ((0xffffffff .>. p) .<. p))
   return (V4.IpBlock (V4.IpAddress (w .<. p)) (V4.IpNetMask m))
 
-canonicalIpv6Block :: MonadGen m => m V6.IpBlock
+canonicalIpv6Block :: MonadGen m => m (V6.IpBlock Canonical)
 canonicalIpv6Block = do
   m <- G.word8   (R.linear 0 128)
   let p = fromIntegral (128 - m)

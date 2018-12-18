@@ -157,13 +157,14 @@ parseCanonicalIpBlock = do
 
 splitIpRange :: Range IpAddress -> (IpBlock Canonical, Maybe (Range IpAddress))
 splitIpRange (Range (IpAddress a) (IpAddress z)) = (block, remainder)
-  where bpOuter   = 32 - B.countLeadingZeros (z + 1 - a) - 1
-        bpInner   = B.countTrailingZeros ((0xffffffff .<. fromIntegral bpOuter) .|. a)
-        block     = IpBlock (IpAddress a) (IpNetMask (32 - fromIntegral bpInner))
-        hostMask  = comp (0xffffffff .<. fromIntegral bpInner) :: Word32
+  where bpOuter   = width - B.countLeadingZeros (z + 1 - a) - 1
+        bpInner   = B.countTrailingZeros ((maxBound .<. fromIntegral bpOuter) .|. a)
+        block     = IpBlock (IpAddress a) (IpNetMask (fromIntegral (width - bpInner)))
+        hostMask  = comp (maxBound .<. fromIntegral bpInner)
         remainder = if a + hostMask >= z
           then Nothing
           else Just (Range (IpAddress (a + hostMask + 1)) (IpAddress z))
+        width = B.finiteBitSize a
 
 -- assume distinct & sorted input
 collapseIpBlocks :: [IpBlock Canonical] -> [IpBlock Canonical]

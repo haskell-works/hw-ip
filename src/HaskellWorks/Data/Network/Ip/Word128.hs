@@ -16,17 +16,14 @@ import Data.Generics.Product.Any
 import Data.Maybe
 import Data.Word
 import GHC.Generics
-import HaskellWorks.Data.Network.Ip.Range
 import Prelude                            hiding (words)
 import Text.Read
 
-import qualified Data.Attoparsec.Text                  as AP
 import qualified Data.Bits                             as B
 import qualified Data.IP                               as D
 import qualified Data.String                           as S
 import qualified Data.Text                             as T
 import qualified HaskellWorks.Data.Network.Ip.Internal as I
-import qualified HaskellWorks.Data.Network.Ip.Ipv4     as V4
 import qualified Text.ParserCombinators.ReadPrec       as RP
 
 type Word128 = (Word32, Word32, Word32, Word32)
