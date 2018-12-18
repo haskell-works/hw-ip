@@ -31,6 +31,7 @@ module HaskellWorks.Data.Network.Ip.Ipv4
 
 import Control.Applicative
 import Control.Monad
+import Data.Bifunctor
 import Data.Char
 import Data.Foldable
 import Data.Maybe
@@ -198,6 +199,4 @@ rangeToBlocks :: Range IpAddress -> [IpBlock]
 rangeToBlocks r = rangeToBlocksDL r []
 
 blockToRange :: IpBlock -> Range IpAddress
-blockToRange (IpBlock (IpAddress w) (IpNetMask m)) = Range fst lst
-  where fst = IpAddress w
-        lst = IpAddress (w + ((0xffffffff .<. fromIntegral m) .>. fromIntegral m))
+blockToRange b = uncurry Range $ bimap firstIpAddress lastIpAddress (b, b)
