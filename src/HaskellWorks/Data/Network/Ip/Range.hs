@@ -7,7 +7,7 @@ module HaskellWorks.Data.Network.Ip.Range where
 import GHC.Generics
 import HaskellWorks.Data.Network.Ip.SafeEnum
 
-import qualified Data.Attoparsec.Text as AP
+import qualified Text.Appar.String as AP
 
 data Range a = Range
   { first :: a
