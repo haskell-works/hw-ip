@@ -1,8 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module HaskellWorks.Data.Network.Ipv6Spec (spec) where
 
 import HaskellWorks.Data.Network.Ip.SafeEnum
+import HaskellWorks.Data.Network.Ip.Validity
 import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Test.Hspec
@@ -34,9 +36,9 @@ spec = describe "HaskellWorks.Data.Network.Ipv6Spec" $ do
 
     it "should implement read" $ requireTest $ do
       read "1:2:3:4::"      === V6.IpAddress (0x10002,0x30004,0,0)
-      read "1:2:3:4::/127"  === V6.IpBlock (V6.IpAddress (0x10002   , 0x30004 , 0, 0)) (V6.IpNetMask 127)
-      read "1234::/16"      === V6.IpBlock (V6.IpAddress (0x12340000, 0       , 0, 0)) (V6.IpNetMask  16)
-      read "12:34::/32"     === V6.IpBlock (V6.IpAddress (0x120034  , 0       , 0, 0)) (V6.IpNetMask  32)
+      read "1:2:3:4::/127"  === V6.IpBlock @Unaligned (V6.IpAddress (0x10002   , 0x30004 , 0, 0)) (V6.IpNetMask 127)
+      read "1234::/16"      === V6.IpBlock @Unaligned (V6.IpAddress (0x12340000, 0       , 0, 0)) (V6.IpNetMask  16)
+      read "12:34::/32"     === V6.IpBlock @Unaligned (V6.IpAddress (0x120034  , 0       , 0, 0)) (V6.IpNetMask  32)
 
     it "should parse what it has shown" $ require $ property $ do
       a <- forAll $ G.word32 R.constantBounded

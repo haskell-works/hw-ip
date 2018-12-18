@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module HaskellWorks.Data.Network.Ipv4Spec (spec) where
 
@@ -6,6 +7,7 @@ import HaskellWorks.Data.Bits.BitWise
 import HaskellWorks.Data.Network.Ip.Internal
 import HaskellWorks.Data.Network.Ip.Ipv4
 import HaskellWorks.Data.Network.Ip.Range
+import HaskellWorks.Data.Network.Ip.Validity
 import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Test.Hspec
@@ -68,9 +70,9 @@ spec = describe "HaskellWorks.Data.Network.Ipv4Spec" $ do
       show (I.lastIpAddress  $ I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 21)) === "255.0.7.255"
 
     it "should implement read" $ requireTest $ do
-      read "1.0.0.0/8"  === I.IpBlock (I.IpAddress 0x01000000) (I.IpNetMask 8)
-      read "1.2.0.0/16" === I.IpBlock (I.IpAddress 0x01020000) (I.IpNetMask 16)
-      read "1.2.3.4/32" === I.IpBlock (I.IpAddress 0x01020304) (I.IpNetMask 32)
+      read "1.0.0.0/8"  === I.IpBlock @Unaligned (I.IpAddress 0x01000000) (I.IpNetMask 8)
+      read "1.2.0.0/16" === I.IpBlock @Unaligned (I.IpAddress 0x01020000) (I.IpNetMask 16)
+      read "1.2.3.4/32" === I.IpBlock @Unaligned (I.IpAddress 0x01020304) (I.IpNetMask 32)
 
     it "should implement splitBlock" $ requireTest $ do
       I.splitBlock (I.IpBlock (I.IpAddress 0x00000000) (I.IpNetMask 32)) === Nothing
@@ -83,9 +85,9 @@ spec = describe "HaskellWorks.Data.Network.Ipv4Spec" $ do
       I.blockSize  0 === 0x100000000
 
     it "should validate masks" $ requireTest $ do
-      (read "1.2.3.4/8"  :: I.IpBlock) === I.IpBlock (I.IpAddress 0x01020304) (I.IpNetMask  8)
-      (read "1.2.3.4/0"  :: I.IpBlock) === I.IpBlock (I.IpAddress 0x01020304) (I.IpNetMask  0)
-      (read "1.2.3.4/32" :: I.IpBlock) === I.IpBlock (I.IpAddress 0x01020304) (I.IpNetMask 32)
+      (read "1.2.3.4/8"  :: I.IpBlock Unaligned) === I.IpBlock (I.IpAddress 0x01020304) (I.IpNetMask  8)
+      (read "1.2.3.4/0"  :: I.IpBlock Unaligned) === I.IpBlock (I.IpAddress 0x01020304) (I.IpNetMask  0)
+      (read "1.2.3.4/32" :: I.IpBlock Unaligned) === I.IpBlock (I.IpAddress 0x01020304) (I.IpNetMask 32)
 
     it "should canonicalise block" $ requireTest $ do
       I.canonicaliseIpBlock (I.IpBlock (I.IpAddress 0x01020304) (I.IpNetMask 32)) === I.IpBlock (I.IpAddress 0x01020304) (I.IpNetMask 32)
@@ -94,12 +96,12 @@ spec = describe "HaskellWorks.Data.Network.Ipv4Spec" $ do
       I.canonicaliseIpBlock (I.IpBlock (I.IpAddress 0x01020304) (I.IpNetMask  8)) === I.IpBlock (I.IpAddress 0x01000000) (I.IpNetMask  8)
 
     it "should collapse blocks" $ requireTest $ do
-      let ipblocks1 =    read <$> ["1.2.3.4/32", "4.3.2.1/32"]
+      let ipblocks1 = read @(IpBlock Canonical) <$> ["1.2.3.4/32", "4.3.2.1/32"]
       collapseIpBlocks ipblocks1 === ipblocks1
-      let ipblocks2 = read <$> ["1.2.3.3/32", "1.2.3.0/32", "1.2.3.1/32", "1.2.3.2/32"]
-      collapseIpBlocks (DL.sort ipblocks2) === (read <$> ["1.2.3.0/30"])
-      let ipblocks3 = read <$> ["1.2.3.3/32", "1.2.3.0/32", "1.2.3.1/32", "1.2.3.2/32", "5.5.5.5/32"]
-      collapseIpBlocks (DL.sort ipblocks3) === (read <$> ["1.2.3.0/30", "5.5.5.5/32"])
+      let ipblocks2 = read @(IpBlock Canonical) <$> ["1.2.3.3/32", "1.2.3.0/32", "1.2.3.1/32", "1.2.3.2/32"]
+      collapseIpBlocks (DL.sort ipblocks2) === (read @(IpBlock Canonical) <$> ["1.2.3.0/30"])
+      let ipblocks3 = read @(IpBlock Canonical) <$> ["1.2.3.3/32", "1.2.3.0/32", "1.2.3.1/32", "1.2.3.2/32", "5.5.5.5/32"]
+      collapseIpBlocks (DL.sort ipblocks3) === (read @(IpBlock Canonical) <$> ["1.2.3.0/30", "5.5.5.5/32"])
 
   describe "should split ranges" $ do
     it "0.0.0.0 - 0.0.0.0" $ requireTest $ do

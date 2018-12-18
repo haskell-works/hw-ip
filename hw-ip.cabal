@@ -31,6 +31,7 @@ library
       HaskellWorks.Data.Network.Ip.Ipv6
       HaskellWorks.Data.Network.Ip.Range
       HaskellWorks.Data.Network.Ip.SafeEnum
+      HaskellWorks.Data.Network.Ip.Validity
     hs-source-dirs: src
     other-modules:
         Paths_hw_ip

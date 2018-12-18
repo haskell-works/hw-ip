@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DuplicateRecordFields      #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs               #-}
 {-# LANGUAGE OverloadedStrings          #-}
@@ -12,12 +13,12 @@ module HaskellWorks.Data.Network.Ip.Ipv6
   , fromV4
   , parseIpBlock
   , masksIp
-  , isValidIpBlock
   , firstIpAddress
   , lastIpAddress
   , rangeToBlocks
   , rangeToBlocksDL
   , blockToRange
+  , isCanonical
   ) where
 
 import Control.Applicative
@@ -31,6 +32,7 @@ import Data.Word
 import GHC.Generics
 import HaskellWorks.Data.Network.Ip.Range
 import HaskellWorks.Data.Network.Ip.SafeEnum
+import HaskellWorks.Data.Network.Ip.Validity
 import Prelude                               hiding (words)
 import Text.Read
 
@@ -82,12 +84,12 @@ instance Read IpNetMask where
     where
       m = mfilter (\a -> a >= 0 && a <= 128) (readMaybe s)
 
-data IpBlock = IpBlock
+data IpBlock v = IpBlock
   { base :: !IpAddress
   , mask :: !IpNetMask
   } deriving (Eq, Ord, Generic)
 
-instance Read IpBlock where
+instance Read (IpBlock Unaligned) where
   readsPrec _ s =
     case T.unpack <$> T.split (== '/') (T.pack s) of
       [addr, mask] ->
@@ -96,15 +98,15 @@ instance Read IpBlock where
             case readMaybe mask of
               Just maskv6 ->
                 let i6b = IpBlock ipv6 maskv6 in
-                  [(i6b, "") | isValidIpBlock i6b]
+                  [(i6b, "") | isCanonical i6b]
               Nothing     -> []
           Nothing -> []
       _ -> []
 
-instance Show IpBlock where
+instance Show (IpBlock v) where
   showsPrec _ (IpBlock b (IpNetMask m))  = shows b . ('/':) . shows m
 
-parseIpBlock :: T.Text -> Either T.Text IpBlock
+parseIpBlock :: T.Text -> Either T.Text (IpBlock Unaligned)
 parseIpBlock t =
   case T.unpack <$> T.split (== '/') t of
     [addr, mask] ->
@@ -132,19 +134,16 @@ masksIp m =
     else
       [0, 0, 0, 0]
 
-isValidIpBlock :: IpBlock -> Bool
-isValidIpBlock (IpBlock b (IpNetMask m)) =
+isCanonical :: IpBlock v -> Bool
+isCanonical (IpBlock b (IpNetMask m)) =
   let lt = masksIp m
       ipv6 = I.word32x4ToWords (words b) in
     ipv6 == zipWith (.&.) ipv6 (zipWith xor ipv6 lt)
 
-fromV4 :: V4.IpBlock -> IpBlock
+fromV4 :: V4.IpBlock Canonical -> IpBlock v
 fromV4 (V4.IpBlock b m) =
   -- RFC-4291, "IPv4-Mapped IPv6 Address"
   IpBlock (IpAddress (0, 0, 0xFFFF, V4.word b)) (IpNetMask (96 + V4.word8 m))
-
-firstIpAddress :: IpBlock -> IpAddress
-firstIpAddress (IpBlock base _) = base
 
 intValue :: IpAddress -> Integer
 intValue (IpAddress (a, b, c, d)) =
@@ -163,15 +162,18 @@ ipValue i =
       d  = fromIntegral (i' `B.shiftR` 00 B..&. 0xffffffff)
   in IpAddress (a, b, c, d)
 
-lastIpAddress :: IpBlock -> IpAddress
+firstIpAddress :: IpBlock Canonical -> IpAddress
+firstIpAddress (IpBlock base _) = base
+
+lastIpAddress :: IpBlock Canonical -> IpAddress
 lastIpAddress b@(IpBlock i@(IpAddress base) (IpNetMask m)) =
   ipValue $ intValue i + fromIntegral (I.blockSize128 m) - 1
 
-rangeToBlocksDL :: Range IpAddress -> [IpBlock] -> [IpBlock]
+rangeToBlocksDL :: Range IpAddress -> [IpBlock Canonical] -> [IpBlock Canonical]
 rangeToBlocksDL = error "TODO implement rangeToBlocksDL"
 
-rangeToBlocks :: Range IpAddress -> [IpBlock]
+rangeToBlocks :: Range IpAddress -> [IpBlock Canonical]
 rangeToBlocks = error "TODO implement rangeToBlocks"
 
-blockToRange :: IpBlock -> Range IpAddress
+blockToRange :: IpBlock Canonical -> Range IpAddress
 blockToRange b = uncurry Range $ bimap firstIpAddress lastIpAddress (b, b)
