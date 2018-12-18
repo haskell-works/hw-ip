@@ -50,7 +50,7 @@ import qualified Text.ParserCombinators.ReadPrec       as RP
 
 newtype IpAddress = IpAddress
   { word :: Word32
-  } deriving (Enum, Eq, Ord, Generic)
+  } deriving (Enum, Bounded, Eq, Ord, Generic)
 
 instance Show IpAddress where
   showsPrec _ = showsIpAddress
@@ -66,7 +66,7 @@ instance Read IpAddress where
 
 newtype IpNetMask = IpNetMask
   { word8 :: Word8
-  } deriving (Enum, Eq, Ord, Show, Generic)
+  } deriving (Enum, Bounded, Eq, Ord, Show, Generic)
 
 data IpBlock = IpBlock
   { base :: !IpAddress

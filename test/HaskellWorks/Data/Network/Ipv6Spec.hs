@@ -2,6 +2,7 @@
 
 module HaskellWorks.Data.Network.Ipv6Spec (spec) where
 
+import HaskellWorks.Data.Network.Ip.SafeEnum
 import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Test.Hspec
@@ -43,9 +44,9 @@ spec = describe "HaskellWorks.Data.Network.Ipv6Spec" $ do
       V6.parseIpBlock (T.pack (show addr)) === Right addr
 
     it "should support enum" $ require $ property $ do
-      pred (V6.IpAddress (32, 32, 32, 32)) === V6.IpAddress (32, 32, 32, 31)
-      succ (V6.IpAddress (32, 32, 32, 32)) === V6.IpAddress (32, 32, 32, 33)
-      pred (V6.IpAddress (0, 0, 0, 0xffffffff)) === V6.IpAddress (0, 0, 0, 0xfffffffe)
-      succ (V6.IpAddress (0, 0, 0, 0xffffffff)) === V6.IpAddress (0, 0, 1, 0)
-      succ (V6.IpAddress (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff)) === V6.IpAddress (0, 0, 0, 0)
-      pred (V6.IpAddress (0, 0, 0, 0)) === V6.IpAddress (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff)
+      boundedPred (V6.IpAddress (32, 32, 32, 32)) === V6.IpAddress (32, 32, 32, 31)
+      boundedSucc (V6.IpAddress (32, 32, 32, 32)) === V6.IpAddress (32, 32, 32, 33)
+      boundedPred (V6.IpAddress (0, 0, 0, 0xffffffff)) === V6.IpAddress (0, 0, 0, 0xfffffffe)
+      boundedSucc (V6.IpAddress (0, 0, 0, 0xffffffff)) === V6.IpAddress (0, 0, 1, 0)
+      boundedSucc (V6.IpAddress (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff)) === V6.IpAddress (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff)
+      boundedPred (V6.IpAddress (0, 0, 0, 0)) === V6.IpAddress (0, 0, 0, 0)
