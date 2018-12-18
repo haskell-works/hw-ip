@@ -45,9 +45,6 @@ instance Enum Word128 where
   pred (a, b, c, 0) = (         a,          b,     pred c, 0xffffffff)
   pred (a, b, c, d) = (         a,          b,          c,     pred d)
 
-one ::Word128
-one = (0, 0, 0, 1)
-
 integerToWord128 :: Integer -> Word128
 integerToWord128 i = let a  = fromIntegral (i `B.shiftR` 96 B..&. 0xffffffff)
                          b  = fromIntegral (i `B.shiftR` 64 B..&. 0xffffffff)
@@ -68,7 +65,7 @@ instance Num Word128 where
   (*)         = undefined
   abs a       = a
   signum (0, 0, 0, 0) = minBound
-  signum _            = one
+  signum _            = 1
   fromInteger = integerToWord128
 
 instance B.Bits Word128 where
@@ -78,7 +75,7 @@ instance B.Bits Word128 where
   complement (a, b, c, d)         = (B.complement a, B.complement b, B.complement c, B.complement d)
   shift w n                       = integerToWord128 $ (word128ToInteger w) `B.shift` n
   shiftL w n
-    | n < 0 = minBound
+    | n < 0 = minBound  -- This is the special case to make it behaviour as the same as Word32
     | otherwise = integerToWord128 $ (word128ToInteger w) `B.shiftL` n
   shiftR w n                      = integerToWord128 $ (word128ToInteger w) `B.shiftR` n
   rotate w n                      = integerToWord128 $ (word128ToInteger w) `B.rotate` n
