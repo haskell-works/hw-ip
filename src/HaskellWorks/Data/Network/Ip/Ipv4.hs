@@ -9,7 +9,8 @@ module HaskellWorks.Data.Network.Ip.Ipv4
   ( IpAddress(..)
   , IpNetMask(..)
   , IpBlock(..)
-  , isValidIpBlock
+  , bitPower
+  , blockSize
   , isCanonical
   , splitBlock
   , textToMaybeIpAddress
@@ -70,6 +71,8 @@ newtype IpNetMask = IpNetMask
   { word8 :: Word8
   } deriving (Enum, Bounded, Eq, Ord, Show, Generic)
 
+-- | An IP block.  The type parameter determines whether or not the value of the type is
+-- canonical.
 data IpBlock v = IpBlock
   { base :: !IpAddress
   , mask :: !IpNetMask
@@ -85,8 +88,8 @@ instance Read (IpBlock Canonical) where
   readsPrec = I.readsPrecOnParser parseCanonicalIpBlock
 
 -- | A valid block must have all host-bits set to zero after the mask is applied
-isValidIpBlock :: IpBlock v -> Bool
-isValidIpBlock (IpBlock (IpAddress word) (IpNetMask mask)) = word .<. fromIntegral mask == 0
+isCanonical :: IpBlock v -> Bool
+isCanonical (IpBlock (IpAddress word) (IpNetMask mask)) = word .<. fromIntegral mask == 0
 
 -- | Canonicalise the block by zero-ing out the host bits
 canonicaliseIpBlock :: IpBlock v -> IpBlock Canonical
