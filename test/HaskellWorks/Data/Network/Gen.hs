@@ -3,13 +3,14 @@ module HaskellWorks.Data.Network.Gen
   ) where
 
 import HaskellWorks.Data.Bits.BitWise
+import HaskellWorks.Data.Network.Ip.Validity
 import Hedgehog
 
 import qualified HaskellWorks.Data.Network.Ip.Ipv4 as V4
 import qualified Hedgehog.Gen                      as G
 import qualified Hedgehog.Range                    as R
 
-canonicalIpv4Block :: MonadGen m => m V4.IpBlock
+canonicalIpv4Block :: MonadGen m => m (V4.IpBlock Canonical)
 canonicalIpv4Block = do
   m <- G.word8   (R.linear 0 32)
   let p = fromIntegral (32 - m)
