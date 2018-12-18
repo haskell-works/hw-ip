@@ -6,7 +6,7 @@
 
 module HaskellWorks.Data.Network.Ip.Ip
   ( IpBlock(..)
-  , isValidIpBlock
+  , isCanonical
   , firstIpAddress
   , lastIpAddress
   ) where
@@ -46,9 +46,9 @@ instance Read (IpBlock Unaligned) where
           Just ipv6 -> [(IpBlockV6 ipv6, "")]
           Nothing   -> []
 
-isValidIpBlock :: IpBlock v -> Bool
-isValidIpBlock (IpBlockV4 b) = V4.isValidIpBlock b
-isValidIpBlock (IpBlockV6 b) = V6.isValidIpBlock b
+isCanonical :: IpBlock v -> Bool
+isCanonical (IpBlockV4 b) = V4.isCanonical b
+isCanonical (IpBlockV6 b) = V6.isCanonical b
 
 firstIpAddress :: IpBlock Canonical -> (Word32, Word32, Word32, Word32)
 firstIpAddress (IpBlockV4 v4Block)           = firstIpAddress (IpBlockV6 (V6.fromV4 v4Block))

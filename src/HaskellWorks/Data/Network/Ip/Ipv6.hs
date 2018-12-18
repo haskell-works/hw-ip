@@ -13,12 +13,12 @@ module HaskellWorks.Data.Network.Ip.Ipv6
   , fromV4
   , parseIpBlock
   , masksIp
-  , isValidIpBlock
   , firstIpAddress
   , lastIpAddress
   , rangeToBlocks
   , rangeToBlocksDL
   , blockToRange
+  , isCanonical
   ) where
 
 import Control.Applicative
@@ -98,7 +98,7 @@ instance Read (IpBlock Unaligned) where
             case readMaybe mask of
               Just maskv6 ->
                 let i6b = IpBlock ipv6 maskv6 in
-                  [(i6b, "") | isValidIpBlock i6b]
+                  [(i6b, "") | isCanonical i6b]
               Nothing     -> []
           Nothing -> []
       _ -> []
@@ -134,8 +134,8 @@ masksIp m =
     else
       [0, 0, 0, 0]
 
-isValidIpBlock :: IpBlock v -> Bool
-isValidIpBlock (IpBlock b (IpNetMask m)) =
+isCanonical :: IpBlock v -> Bool
+isCanonical (IpBlock b (IpNetMask m)) =
   let lt = masksIp m
       ipv6 = I.word32x4ToWords (words b) in
     ipv6 == zipWith (.&.) ipv6 (zipWith xor ipv6 lt)
