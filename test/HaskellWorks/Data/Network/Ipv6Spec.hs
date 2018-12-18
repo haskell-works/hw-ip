@@ -8,14 +8,15 @@ import Hedgehog
 import Test.Hspec
 
 
-import qualified Data.Attoparsec.Text              as AP
-import qualified Data.Text                         as T
-import qualified HaskellWorks.Data.Network.Ip.Ip   as V
-import qualified HaskellWorks.Data.Network.Ip.Ipv4 as V4
-import qualified HaskellWorks.Data.Network.Ip.Ipv6 as V6
-import qualified Hedgehog.Gen                      as G
-import qualified Hedgehog.Range                    as R
-import qualified Text.Read                         as TR
+import qualified Data.Attoparsec.Text               as AP
+import qualified Data.Text                          as T
+import qualified HaskellWorks.Data.Network.Ip.Ip    as V
+import qualified HaskellWorks.Data.Network.Ip.Ipv4  as V4
+import qualified HaskellWorks.Data.Network.Ip.Ipv6  as V6
+import qualified HaskellWorks.Data.Network.Ip.Range as R
+import qualified Hedgehog.Gen                       as G
+import qualified Hedgehog.Range                     as R
+import qualified Text.Read                          as TR
 
 {-# ANN module ("HLint: ignore Redundant do"  :: String) #-}
 
@@ -50,3 +51,9 @@ spec = describe "HaskellWorks.Data.Network.Ipv6Spec" $ do
       boundedSucc (V6.IpAddress (0, 0, 0, 0xffffffff)) === V6.IpAddress (0, 0, 1, 0)
       boundedSucc (V6.IpAddress (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff)) === V6.IpAddress (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff)
       boundedPred (V6.IpAddress (0, 0, 0, 0)) === V6.IpAddress (0, 0, 0, 0)
+
+  it "should convert ::/128 to ranges" $ requireTest $ do
+    V6.blockToRange (V6.IpBlock (V6.IpAddress (0, 0, 0, 0)) (V6.IpNetMask 128)) === R.Range (V6.IpAddress (0, 0, 0, 0)) (V6.IpAddress (0, 0, 0, 0))
+
+  it "should convert 1234::/64 to ranges" $ requireTest $ do
+    V6.blockToRange (V6.IpBlock (V6.IpAddress (0x12340000, 0, 0, 0)) (V6.IpNetMask 64)) === R.Range (V6.IpAddress (0x12340000, 0, 0, 0)) (V6.IpAddress (0x12340000, 0, 0xffffffff, 0xffffffff))

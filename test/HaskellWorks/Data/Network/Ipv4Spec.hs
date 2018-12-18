@@ -10,15 +10,16 @@ import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Test.Hspec
 
-import qualified Data.Attoparsec.Text               as AP
-import qualified Data.List                          as DL
-import qualified Data.Text                          as T
-import qualified HaskellWorks.Data.Network.Gen      as G
-import qualified HaskellWorks.Data.Network.Ip.Ipv4  as I
-import qualified HaskellWorks.Data.Network.Ip.Range as I
-import qualified Hedgehog.Gen                       as G
-import qualified Hedgehog.Range                     as R
-import qualified Text.Read                          as TR
+import qualified Data.Attoparsec.Text                  as AP
+import qualified Data.List                             as DL
+import qualified Data.Text                             as T
+import qualified HaskellWorks.Data.Network.Gen         as G
+import qualified HaskellWorks.Data.Network.Ip.Internal as I
+import qualified HaskellWorks.Data.Network.Ip.Ipv4     as I
+import qualified HaskellWorks.Data.Network.Ip.Range    as I
+import qualified Hedgehog.Gen                          as G
+import qualified Hedgehog.Range                        as R
+import qualified Text.Read                             as TR
 
 {-# ANN module ("HLint: ignore Redundant do"  :: String) #-}
 
@@ -78,8 +79,8 @@ spec = describe "HaskellWorks.Data.Network.Ipv4Spec" $ do
       I.splitBlock (I.IpBlock (I.IpAddress 0x00000000) (I.IpNetMask  0)) === Just (I.IpBlock (I.IpAddress 0x00000000) (I.IpNetMask  1), I.IpBlock (I.IpAddress 0x80000000) (I.IpNetMask  1))
 
     it "should implement blockSize" $ requireTest $ do
-      I.blockSize (I.IpBlock (I.IpAddress 0x00000000) (I.IpNetMask 32)) === 1
-      I.blockSize (I.IpBlock (I.IpAddress 0x00000000) (I.IpNetMask  0)) === 0x100000000
+      I.blockSize 32 === 0x000000001
+      I.blockSize  0 === 0x100000000
 
     it "should validate masks" $ requireTest $ do
       (read "1.2.3.4/8"  :: I.IpBlock) === I.IpBlock (I.IpAddress 0x01020304) (I.IpNetMask  8)
@@ -208,4 +209,3 @@ spec = describe "HaskellWorks.Data.Network.Ipv4Spec" $ do
   it "block can be converted to range and back" $ require $ property $ do
     b <- forAll G.canonicalIpv4Block
     I.splitIpRange (I.blockToRange b) === (b, Nothing)
-
