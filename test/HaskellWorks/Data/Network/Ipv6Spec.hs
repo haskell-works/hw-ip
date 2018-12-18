@@ -15,6 +15,14 @@ import qualified HaskellWorks.Data.Network.Ip.Ip    as V
 import qualified HaskellWorks.Data.Network.Ip.Ipv4  as V4
 import qualified HaskellWorks.Data.Network.Ip.Ipv6  as V6
 import qualified HaskellWorks.Data.Network.Ip.Range as R
+import qualified Data.Attoparsec.Text               as AP
+import qualified Data.Text                          as T
+import qualified HaskellWorks.Data.Network.Gen      as G
+import qualified HaskellWorks.Data.Network.Ip.Ip    as V
+import qualified HaskellWorks.Data.Network.Ip.Ipv4  as V4
+import qualified HaskellWorks.Data.Network.Ip.Ipv6  as V6
+import qualified HaskellWorks.Data.Network.Ip.Range as IR
+
 import qualified Hedgehog.Gen                       as G
 import qualified Hedgehog.Range                     as R
 import qualified Text.Read                          as TR
@@ -58,3 +66,23 @@ spec = describe "HaskellWorks.Data.Network.Ipv6Spec" $ do
 
   it "should convert 1234::/64 to ranges" $ requireTest $ do
     V6.blockToRange (V6.IpBlock (V6.IpAddress (0x12340000, 0, 0, 0)) (V6.IpNetMask 64)) === R.Range (V6.IpAddress (0x12340000, 0, 0, 0)) (V6.IpAddress (0x12340000, 0, 0xffffffff, 0xffffffff))
+      pred (V6.IpAddress (32, 32, 32, 32)) === V6.IpAddress (32, 32, 32, 31)
+      succ (V6.IpAddress (32, 32, 32, 32)) === V6.IpAddress (32, 32, 32, 33)
+      pred (V6.IpAddress (0, 0, 0, 0xffffffff)) === V6.IpAddress (0, 0, 0, 0xfffffffe)
+      succ (V6.IpAddress (0, 0, 0, 0xffffffff)) === V6.IpAddress (0, 0, 1, 0)
+      succ (V6.IpAddress (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff)) === V6.IpAddress (0, 0, 0, 0)
+      pred (V6.IpAddress (0, 0, 0, 0)) === V6.IpAddress (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff)
+
+    it "block can be converted to range" $ require $ property $ do
+      let b = read "1234::/16" :: V6.IpBlock
+      V6.blockToRange b === IR.Range (read "1234::") (read "1234:ffff:ffff:ffff:ffff:ffff:ffff:ffff")
+
+    it "block can be converted to range and back" $ require $ property $ do
+      b <- forAll G.canonicalIpv6Block
+      V6.splitIpRange (V6.blockToRange b) === (b, Nothing)
+
+    it "ranges can be split" $ require $ property $ do
+      V6.splitIpRange (IR.Range (read "::") (read "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")) === (V6.IpBlock (V6.IpAddress (0, 0, 0, 0)) (V6.IpNetMask 0), Nothing)
+      V6.splitIpRange (IR.Range (read "::") (read "::88")) === (V6.IpBlock (V6.IpAddress (0, 0, 0, 0)) (V6.IpNetMask 121), Just (IR.Range (read "::80") (read "::88")))
+      V6.splitIpRange (IR.Range (read "::3") (read "::88")) === (V6.IpBlock (V6.IpAddress (0, 0, 0, 3)) (V6.IpNetMask 128), Just (IR.Range (read "::4") (read "::88")))
+      V6.splitIpRange (IR.Range (read "::127") (read "::129")) === (V6.IpBlock (V6.IpAddress (0, 0, 0, 0x127)) (V6.IpNetMask 128), Just (IR.Range (read "::128") (read "::129")))
