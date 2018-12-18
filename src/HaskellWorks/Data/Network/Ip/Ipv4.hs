@@ -12,7 +12,6 @@ module HaskellWorks.Data.Network.Ip.Ipv4
   , bitPower
   , isCanonical
   , splitBlock
-  , textToMaybeIpAddress
   , parseIpAddress
   , showIpAddress
   , showsIpAddress
@@ -42,12 +41,12 @@ import HaskellWorks.Data.Network.Ip.Range
 import HaskellWorks.Data.Network.Ip.Validity
 import Text.Read
 
-import qualified Data.Attoparsec.Text                  as AP
 import qualified Data.Bits                             as B
 import qualified Data.Bits                             as DB
 import qualified Data.Sequence                         as S
 import qualified Data.Text                             as T
 import qualified HaskellWorks.Data.Network.Ip.Internal as I
+import qualified Text.Appar.String                     as AP
 import qualified Text.ParserCombinators.ReadPrec       as RP
 
 newtype IpAddress = IpAddress
@@ -59,12 +58,7 @@ instance Show IpAddress where
 
 instance Read IpAddress where
   readsPrec :: Int -> String -> [(IpAddress, String)]
-  readsPrec _ s = case AP.parseWith (return mempty) (I.whitespace *> I.ipv4Address) (T.pack s) of
-    Just result -> case result of
-      AP.Done i r   -> [(IpAddress r, T.unpack i)]
-      AP.Partial _  -> []
-      AP.Fail a b c -> []
-    Nothing -> []
+  readsPrec = I.readsPrecOnParser (IpAddress <$> I.ipv4Address)
 
 newtype IpNetMask = IpNetMask
   { word8 :: Word8
@@ -116,9 +110,6 @@ splitBlock (IpBlock (IpAddress b) (IpNetMask m)) =
               , IpBlock (IpAddress (b + c)) halfMask
               )
     else  Nothing
-
-textToMaybeIpAddress :: T.Text -> Maybe IpAddress
-textToMaybeIpAddress t = AP.maybeResult =<< AP.parseWith (return mempty) parseIpAddress t
 
 showsIpAddress :: IpAddress -> String -> String
 showsIpAddress (IpAddress w) =

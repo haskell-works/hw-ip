@@ -12,7 +12,6 @@ import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Test.Hspec
 
-import qualified Data.Attoparsec.Text                  as AP
 import qualified Data.List                             as DL
 import qualified Data.Text                             as T
 import qualified HaskellWorks.Data.Network.Gen         as G
@@ -21,6 +20,7 @@ import qualified HaskellWorks.Data.Network.Ip.Ipv4     as I
 import qualified HaskellWorks.Data.Network.Ip.Range    as I
 import qualified Hedgehog.Gen                          as G
 import qualified Hedgehog.Range                        as R
+import qualified Text.Appar.String                     as AP
 import qualified Text.Read                             as TR
 
 {-# ANN module ("HLint: ignore Redundant do"  :: String) #-}
@@ -30,7 +30,7 @@ spec = describe "HaskellWorks.Data.Network.Ipv4Spec" $ do
   describe "octet" $ do
     it "should go from 0-255" $ require $ property $ do
       b <- forAll $ G.word8 R.constantBounded
-      AP.parseOnly octet (T.pack . show $ b) === Right b
+      AP.runParser octet (show b) === (Just b, "")
 
   describe "I.IpAddress" $ do
     it "should implement show" $ requireTest $ do
