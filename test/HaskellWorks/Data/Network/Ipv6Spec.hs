@@ -10,7 +10,6 @@ import Hedgehog
 import Test.Hspec
 
 
-import qualified Data.Attoparsec.Text               as AP
 import qualified Data.Text                          as T
 import qualified HaskellWorks.Data.Network.Ip.Ip    as V
 import qualified HaskellWorks.Data.Network.Ip.Ipv4  as V4

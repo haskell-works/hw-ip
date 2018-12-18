@@ -36,7 +36,6 @@ import HaskellWorks.Data.Network.Ip.Validity
 import Prelude                               hiding (words)
 import Text.Read
 
-import qualified Data.Attoparsec.Text                  as AP
 import qualified Data.Bits                             as B
 import qualified Data.IP                               as D
 import qualified Data.String                           as S

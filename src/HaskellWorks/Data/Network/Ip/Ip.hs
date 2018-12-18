@@ -21,7 +21,6 @@ import HaskellWorks.Data.Bits.BitWise
 import HaskellWorks.Data.Network.Ip.Validity
 import Text.Read
 
-import qualified Data.Attoparsec.Text                  as AP
 import qualified Data.Bits                             as B
 import qualified Data.Text                             as T
 import qualified HaskellWorks.Data.Network.Ip.Internal as I

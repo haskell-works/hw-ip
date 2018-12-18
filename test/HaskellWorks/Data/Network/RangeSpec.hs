@@ -4,16 +4,18 @@
 
 module HaskellWorks.Data.Network.RangeSpec (spec) where
 
+import Control.Applicative
+import Data.Char                   (ord)
 import Data.Either
 import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Test.Hspec
 
-import qualified Data.Attoparsec.Text               as AP
 import qualified HaskellWorks.Data.Network.Ip.Ip    as V
 import qualified HaskellWorks.Data.Network.Ip.Ipv4  as V4
 import qualified HaskellWorks.Data.Network.Ip.Ipv6  as V6
 import qualified HaskellWorks.Data.Network.Ip.Range as R
+import qualified Text.Appar.String                  as AP
 
 {-# ANN module ("HLint: ignore Redundant do"  :: String) #-}
 
@@ -40,6 +42,5 @@ spec = describe "HaskellWorks.Data.Network.RangeSpec" $ do
       R.mergeRanges v6Ranges1 === v6Ranges2
 
     it "should parse dash-delimited ranges" $ requireTest $ do
-      AP.parseOnly (R.parseRange AP.decimal) "1 2" === Left "string"
-      AP.parseOnly (R.parseRange AP.decimal) "1 - 2" === Right (R.Range 1 2)
-      AP.parseOnly (R.parseRange AP.anyChar) "a - b" === Right (R.Range 'a' 'b')
+      AP.runParser (AP.try (R.parseRange AP.alphaNum)) "a b"   === (Nothing               , "a b")
+      AP.runParser (AP.try (R.parseRange AP.alphaNum)) "a - b" === (Just (R.Range 'a' 'b'), ""   )
