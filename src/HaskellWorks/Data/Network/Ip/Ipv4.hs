@@ -10,7 +10,6 @@ module HaskellWorks.Data.Network.Ip.Ipv4
   , IpNetMask(..)
   , IpBlock(..)
   , bitPower
-  , blockSize
   , isCanonical
   , splitBlock
   , textToMaybeIpAddress
@@ -87,10 +86,6 @@ instance Read (IpBlock Unaligned) where
 instance Read (IpBlock Canonical) where
   readsPrec = I.readsPrecOnParser parseCanonicalIpBlock
 
--- | A valid block must have all host-bits set to zero after the mask is applied
-isCanonical :: IpBlock v -> Bool
-isCanonical (IpBlock (IpAddress word) (IpNetMask mask)) = word .<. fromIntegral mask == 0
-
 -- | Canonicalise the block by zero-ing out the host bits
 canonicaliseIpBlock :: IpBlock v -> IpBlock Canonical
 canonicaliseIpBlock (IpBlock (IpAddress word) (IpNetMask mask)) = IpBlock (IpAddress newWord) (IpNetMask mask)
@@ -106,6 +101,7 @@ lastIpAddress b@(IpBlock (IpAddress base) (IpNetMask m)) = IpAddress (base + fro
 bitPower :: IpNetMask -> Word64
 bitPower (IpNetMask m) = fromIntegral (32 - m)
 
+-- | A valid block must have all host-bits set to zero after the mask is applied
 isCanonical :: IpBlock v -> Bool
 isCanonical (IpBlock (IpAddress b) (IpNetMask m)) = ((b .>. I.bitPower m) .<. I.bitPower m) == b
 
