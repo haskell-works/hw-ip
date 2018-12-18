@@ -34,6 +34,7 @@ import Data.Bifunctor
 import Data.Char
 import Data.Foldable
 import Data.Maybe
+import Data.Semigroup                        ((<>))
 import Data.Word
 import GHC.Generics
 import HaskellWorks.Data.Bits.BitWise
@@ -75,26 +76,13 @@ data IpBlock v = IpBlock
   } deriving (Eq, Ord, Generic)
 
 instance Show (IpBlock v) where
-  showsPrec _ (IpBlock b (IpNetMask m)) = shows b . ('/':) . shows m
+  showsPrec _ = showsIpBlock
 
 instance Read (IpBlock Unaligned) where
-  readsPrec :: Int -> String -> [(IpBlock Unaligned, String)]
-  readsPrec _ s = case AP.parseWith (return mempty) (I.whitespace *> I.ipv4Block) (T.pack s) of
-    Just result -> case result of
-      AP.Done i (a, m) -> [(IpBlock (IpAddress a) (IpNetMask m), T.unpack i)]
-      AP.Partial _     -> []
-      AP.Fail a b c    -> []
-    Nothing -> []
+  readsPrec = I.readsPrecOnParser parseUnalignedIpBlock
 
 instance Read (IpBlock Canonical) where
-  -- TODO Check for canonicalness
-  readsPrec :: Int -> String -> [(IpBlock Canonical, String)]
-  readsPrec _ s = case AP.parseWith (return mempty) (I.whitespace *> I.ipv4Block) (T.pack s) of
-    Just result -> case result of
-      AP.Done i (a, m) -> [(IpBlock (IpAddress a) (IpNetMask m), T.unpack i)]
-      AP.Partial _     -> []
-      AP.Fail a b c    -> []
-    Nothing -> []
+  readsPrec = I.readsPrecOnParser parseCanonicalIpBlock
 
 -- | A valid block must have all host-bits set to zero after the mask is applied
 isValidIpBlock :: IpBlock v -> Bool
@@ -146,6 +134,15 @@ showIpAddress ipAddress = showsIpAddress ipAddress ""
 tshowIpAddress :: IpAddress -> T.Text
 tshowIpAddress = T.pack . showIpAddress
 
+showsIpBlock :: IpBlock v -> String -> String
+showsIpBlock (IpBlock b (IpNetMask m)) = shows b . ('/':) . shows m
+
+showIpBlock :: IpBlock v -> String
+showIpBlock ipBlock = showsIpBlock ipBlock ""
+
+tshowIpBlock :: IpBlock v -> T.Text
+tshowIpBlock = T.pack . showIpBlock
+
 ipAddressToWords :: IpAddress -> (Word8, Word8, Word8, Word8)
 ipAddressToWords (IpAddress w) =
   ( fromIntegral (w .>. 24) .&. 0xff
@@ -156,6 +153,18 @@ ipAddressToWords (IpAddress w) =
 
 parseIpAddress :: AP.Parser IpAddress
 parseIpAddress = IpAddress <$> I.ipv4Address
+
+parseUnalignedIpBlock :: AP.Parser (IpBlock Unaligned)
+parseUnalignedIpBlock = do
+  (a, m) <- I.ipv4Block
+  return (IpBlock (IpAddress a) (IpNetMask m))
+
+parseCanonicalIpBlock :: AP.Parser (IpBlock Canonical)
+parseCanonicalIpBlock = do
+  b <- parseUnalignedIpBlock
+  if isCanonical b
+    then let IpBlock ip m = b in return (IpBlock ip m)
+    else fail $ showIpBlock b <> " is not a canonical block"
 
 splitIpRange :: Range IpAddress -> (IpBlock Canonical, Maybe (Range IpAddress))
 splitIpRange (Range (IpAddress a) (IpAddress z)) = (block, remainder)

@@ -7,6 +7,7 @@ import Data.Word
 import HaskellWorks.Data.Bits.BitWise
 
 import qualified Data.Attoparsec.Text as AP
+import qualified Data.Text            as T
 
 fourOctetsToWord32 :: Word8 -> Word8 -> Word8 -> Word8 -> Word32
 fourOctetsToWord32 a b c d =
@@ -72,3 +73,11 @@ bitPower128 m = fromIntegral (128 - m)
 
 blockSize128 :: Word8 -> Integer
 blockSize128 m = 2 ^ bitPower128 m
+
+readsPrecOnParser :: AP.Parser a -> Int -> String -> [(a, String)]
+readsPrecOnParser p _ s = case AP.parseWith (return mempty) (whitespace *> p) (T.pack s) of
+    Just result -> case result of
+      AP.Done i a   -> [(a, T.unpack i)]
+      AP.Partial _  -> []
+      AP.Fail a b c -> []
+    Nothing -> []
