@@ -6,8 +6,6 @@ import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Test.Hspec
 
-
-import qualified Data.Attoparsec.Text                 as AP
 import qualified Data.Bits                            as B
 import qualified Data.Text                            as T
 import qualified HaskellWorks.Data.Network.Gen        as G
@@ -51,4 +49,3 @@ spec = describe "HaskellWorks.Data.Network.Ipv6Spec" $ do
       B.countTrailingZeros ((0, 0, 0, 1) :: W.Word128) === 0
       B.countTrailingZeros ((0, 0, 0, 0) :: W.Word128) === 128
       B.countTrailingZeros ((0, 0, 0x10, 0) :: W.Word128) === 36
-

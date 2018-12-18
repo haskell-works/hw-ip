@@ -15,7 +15,6 @@ import qualified HaskellWorks.Data.Network.Ip.Ip    as V
 import qualified HaskellWorks.Data.Network.Ip.Ipv4  as V4
 import qualified HaskellWorks.Data.Network.Ip.Ipv6  as V6
 import qualified HaskellWorks.Data.Network.Ip.Range as R
-import qualified Data.Attoparsec.Text               as AP
 import qualified Data.Text                          as T
 import qualified HaskellWorks.Data.Network.Gen      as G
 import qualified HaskellWorks.Data.Network.Ip.Ip    as V
@@ -61,20 +60,14 @@ spec = describe "HaskellWorks.Data.Network.Ipv6Spec" $ do
       boundedSucc (V6.IpAddress (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff)) === V6.IpAddress (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff)
       boundedPred (V6.IpAddress (0, 0, 0, 0)) === V6.IpAddress (0, 0, 0, 0)
 
-  it "should convert ::/128 to ranges" $ requireTest $ do
-    V6.blockToRange (V6.IpBlock (V6.IpAddress (0, 0, 0, 0)) (V6.IpNetMask 128)) === R.Range (V6.IpAddress (0, 0, 0, 0)) (V6.IpAddress (0, 0, 0, 0))
+    it "should convert ::/128 to ranges" $ requireTest $ do
+      V6.blockToRange (V6.IpBlock (V6.IpAddress (0, 0, 0, 0)) (V6.IpNetMask 128)) === R.Range (V6.IpAddress (0, 0, 0, 0)) (V6.IpAddress (0, 0, 0, 0))
 
-  it "should convert 1234::/64 to ranges" $ requireTest $ do
-    V6.blockToRange (V6.IpBlock (V6.IpAddress (0x12340000, 0, 0, 0)) (V6.IpNetMask 64)) === R.Range (V6.IpAddress (0x12340000, 0, 0, 0)) (V6.IpAddress (0x12340000, 0, 0xffffffff, 0xffffffff))
-      pred (V6.IpAddress (32, 32, 32, 32)) === V6.IpAddress (32, 32, 32, 31)
-      succ (V6.IpAddress (32, 32, 32, 32)) === V6.IpAddress (32, 32, 32, 33)
-      pred (V6.IpAddress (0, 0, 0, 0xffffffff)) === V6.IpAddress (0, 0, 0, 0xfffffffe)
-      succ (V6.IpAddress (0, 0, 0, 0xffffffff)) === V6.IpAddress (0, 0, 1, 0)
-      succ (V6.IpAddress (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff)) === V6.IpAddress (0, 0, 0, 0)
-      pred (V6.IpAddress (0, 0, 0, 0)) === V6.IpAddress (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff)
+    it "should convert 1234::/64 to ranges" $ requireTest $ do
+      V6.blockToRange (V6.IpBlock (V6.IpAddress (0x12340000, 0, 0, 0)) (V6.IpNetMask 64)) === R.Range (V6.IpAddress (0x12340000, 0, 0, 0)) (V6.IpAddress (0x12340000, 0, 0xffffffff, 0xffffffff))
 
     it "block can be converted to range" $ require $ property $ do
-      let b = read "1234::/16" :: V6.IpBlock
+      let b = V6.IpBlock (V6.IpAddress (0x12340000, 0, 0, 0)) (V6.IpNetMask 16)
       V6.blockToRange b === IR.Range (read "1234::") (read "1234:ffff:ffff:ffff:ffff:ffff:ffff:ffff")
 
     it "block can be converted to range and back" $ require $ property $ do

@@ -47,7 +47,7 @@ import qualified HaskellWorks.Data.Network.Ip.Ipv4     as V4
 import qualified HaskellWorks.Data.Network.Ip.Word128  as W
 import qualified Text.ParserCombinators.ReadPrec       as RP
 
-newtype IpAddress = IpAddress W.Word128 deriving (Eq, Enum, Ord, Generic)
+newtype IpAddress = IpAddress W.Word128 deriving (Eq, Ord, Generic, SafeEnum)
 
 instance Show IpAddress where
   showsPrec _ (IpAddress w) = shows (D.fromHostAddress6 w)
@@ -122,9 +122,9 @@ masksIp m =
       [0, 0, 0, 0]
 
 isCanonical :: IpBlock v -> Bool
-isCanonical (IpBlock b (IpNetMask m)) =
+isCanonical (IpBlock (IpAddress w) (IpNetMask m)) =
   let lt = masksIp m
-      ipv6 = I.word32x4ToWords b in
+      ipv6 = I.word32x4ToWords w in
     ipv6 == zipWith (B..&.) ipv6 (zipWith B.xor ipv6 lt)
 
 fromV4 :: V4.IpBlock Canonical -> IpBlock v
@@ -132,39 +132,22 @@ fromV4 (V4.IpBlock b m) =
   -- RFC-4291, "IPv4-Mapped IPv6 Address"
   IpBlock (IpAddress (0, 0, 0xFFFF, V4.word b)) (IpNetMask (96 + V4.word8 m))
 
-intValue :: IpAddress -> Integer
-intValue (IpAddress (a, b, c, d)) =
-  let a' = fromIntegral a `shift` 96
-      b' = fromIntegral b `shift` 64
-      c' = fromIntegral c `shift` 32
-      d' = fromIntegral d `shift` 00
-  in a' .|. b' .|. c' .|. d'
-
-ipValue :: Integer -> IpAddress
-ipValue i =
-  let i' = fromIntegral i :: Integer
-      a  = fromIntegral (i' `B.shiftR` 96 B..&. 0xffffffff)
-      b  = fromIntegral (i' `B.shiftR` 64 B..&. 0xffffffff)
-      c  = fromIntegral (i' `B.shiftR` 32 B..&. 0xffffffff)
-      d  = fromIntegral (i' `B.shiftR` 00 B..&. 0xffffffff)
-  in IpAddress (a, b, c, d)
-
 firstIpAddress :: IpBlock Canonical -> IpAddress
 firstIpAddress (IpBlock base _) = base
 
 lastIpAddress :: IpBlock Canonical -> IpAddress
-lastIpAddress b@(IpBlock i@(IpAddress base) (IpNetMask m)) =
-  ipValue $ intValue i + fromIntegral (I.blockSize128 m) - 1
+lastIpAddress b@(IpBlock i@(IpAddress base) (IpNetMask m)) = IpAddress (base + fromIntegral (I.blockSize128 m) - 1)
 
-splitIpRange :: Range IpAddress -> (IpBlock, Maybe (Range IpAddress))
+splitIpRange :: Range IpAddress -> (IpBlock Canonical, Maybe (Range IpAddress))
 splitIpRange (Range (IpAddress a) (IpAddress z)) = (block, remainder)
-  where bpOuter   = 128 - B.countLeadingZeros (z + 1 - a) - 1
+  where bpOuter   = width - B.countLeadingZeros (z + 1 - a) - 1
         bpInner   = B.countTrailingZeros ((maxBound `B.shiftL` fromIntegral bpOuter) B..|. a)
-        block     = IpBlock (IpAddress a) (IpNetMask (128 - fromIntegral bpInner))
-        hostMask  = B.complement (maxBound `B.shiftL` fromIntegral bpInner) :: W.Word128
+        block     = IpBlock (IpAddress a) (IpNetMask (fromIntegral (width - bpInner)))
+        hostMask  = B.complement (maxBound `B.shiftL` fromIntegral bpInner)
         remainder = if a + hostMask >= z
           then Nothing
           else Just (Range (IpAddress (a + hostMask + 1)) (IpAddress z))
+        width = B.finiteBitSize a
 
 rangeToBlocksDL :: Range IpAddress -> [IpBlock Canonical] -> [IpBlock Canonical]
 rangeToBlocksDL = error "TODO implement rangeToBlocksDL"
