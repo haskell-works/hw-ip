@@ -13,10 +13,16 @@ module HaskellWorks.Data.Network.Ip.Ipv6
   , parseIpBlock
   , masksIp
   , isValidIpBlock
+  , firstIpAddress
+  , lastIpAddress
+  , rangeToBlocks
+  , rangeToBlocksDL
+  , blockToRange
   ) where
 
 import Control.Applicative
 import Control.Monad
+import Data.Bifunctor
 import Data.Bits
 import Data.Char
 import Data.Generics.Product.Any
@@ -137,6 +143,30 @@ fromV4 (V4.IpBlock b m) =
   -- RFC-4291, "IPv4-Mapped IPv6 Address"
   IpBlock (IpAddress (0, 0, 0xFFFF, V4.word b)) (IpNetMask (96 + V4.word8 m))
 
+firstIpAddress :: IpBlock -> IpAddress
+firstIpAddress (IpBlock base _) = base
+
+intValue :: IpAddress -> Integer
+intValue (IpAddress (a, b, c, d)) =
+  let a' = fromIntegral a `shift` 96
+      b' = fromIntegral b `shift` 64
+      c' = fromIntegral c `shift` 32
+      d' = fromIntegral d `shift` 00
+  in a' .|. b' .|. c' .|. d'
+
+ipValue :: Integer -> IpAddress
+ipValue i =
+  let i' = fromIntegral i :: Integer
+      a  = fromIntegral (i' `B.shiftR` 96 B..&. 0xffffffff)
+      b  = fromIntegral (i' `B.shiftR` 64 B..&. 0xffffffff)
+      c  = fromIntegral (i' `B.shiftR` 32 B..&. 0xffffffff)
+      d  = fromIntegral (i' `B.shiftR` 00 B..&. 0xffffffff)
+  in IpAddress (a, b, c, d)
+
+lastIpAddress :: IpBlock -> IpAddress
+lastIpAddress b@(IpBlock i@(IpAddress base) (IpNetMask m)) =
+  ipValue $ intValue i + fromIntegral (I.blockSize128 m) - 1
+
 rangeToBlocksDL :: Range IpAddress -> [IpBlock] -> [IpBlock]
 rangeToBlocksDL = error "TODO implement rangeToBlocksDL"
 
@@ -144,4 +174,4 @@ rangeToBlocks :: Range IpAddress -> [IpBlock]
 rangeToBlocks = error "TODO implement rangeToBlocks"
 
 blockToRange :: IpBlock -> Range IpAddress
-blockToRange = error "TODO implement blockToRange"
+blockToRange b = uncurry Range $ bimap firstIpAddress lastIpAddress (b, b)

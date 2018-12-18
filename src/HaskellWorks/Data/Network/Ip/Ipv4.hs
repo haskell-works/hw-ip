@@ -9,8 +9,6 @@ module HaskellWorks.Data.Network.Ip.Ipv4
   , IpNetMask(..)
   , IpBlock(..)
   , isValidIpBlock
-  , bitPower
-  , blockSize
   , isCanonical
   , splitBlock
   , textToMaybeIpAddress
@@ -100,13 +98,10 @@ firstIpAddress :: IpBlock -> IpAddress
 firstIpAddress (IpBlock base _) = base
 
 lastIpAddress :: IpBlock -> IpAddress
-lastIpAddress b@(IpBlock (IpAddress base) _) = IpAddress (base + fromIntegral (blockSize b) - 1)
-
-bitPower :: IpNetMask -> Word64
-bitPower (IpNetMask m) = fromIntegral (32 - m)
+lastIpAddress b@(IpBlock (IpAddress base) (IpNetMask m)) = IpAddress (base + fromIntegral (I.blockSize m) - 1)
 
 isCanonical :: IpBlock -> Bool
-isCanonical (IpBlock (IpAddress b) m) = ((b .>. bitPower m) .<. bitPower m) == b
+isCanonical (IpBlock (IpAddress b) (IpNetMask m)) = ((b .>. I.bitPower m) .<. I.bitPower m) == b
 
 splitBlock :: IpBlock -> Maybe (IpBlock, IpBlock)
 splitBlock (IpBlock (IpAddress b) (IpNetMask m)) =
@@ -119,9 +114,6 @@ splitBlock (IpBlock (IpAddress b) (IpNetMask m)) =
               , IpBlock (IpAddress (b + c)) halfMask
               )
     else  Nothing
-
-blockSize :: IpBlock -> Int
-blockSize (IpBlock _ m) = 2 ^ bitPower m
 
 textToMaybeIpAddress :: T.Text -> Maybe IpAddress
 textToMaybeIpAddress t = AP.maybeResult =<< AP.parseWith (return mempty) parseIpAddress t

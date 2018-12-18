@@ -60,3 +60,15 @@ ipv4Block = do
 
 word32x4ToWords :: (Word32, Word32, Word32, Word32) -> [Word32]
 word32x4ToWords (a, b, c, d) = [a, b, c, d]
+
+bitPower :: Word8 -> Word64
+bitPower m = fromIntegral (32 - m)
+
+blockSize :: Word8 -> Int
+blockSize m = 2 ^ bitPower m
+
+bitPower128 :: Word8 -> Integer
+bitPower128 m = fromIntegral (128 - m)
+
+blockSize128 :: Word8 -> Integer
+blockSize128 m = 2 ^ bitPower128 m
