@@ -42,7 +42,6 @@ import HaskellWorks.Data.Network.Ip.Validity
 import Text.Read
 
 import qualified Data.Bits                             as B
-import qualified Data.Bits                             as DB
 import qualified Data.Sequence                         as S
 import qualified Data.Text                             as T
 import qualified HaskellWorks.Data.Network.Ip.Internal as I
@@ -158,8 +157,8 @@ parseCanonicalIpBlock = do
 
 splitIpRange :: Range IpAddress -> (IpBlock Canonical, Maybe (Range IpAddress))
 splitIpRange (Range (IpAddress a) (IpAddress z)) = (block, remainder)
-  where bpOuter   = 32 - DB.countLeadingZeros (z + 1 - a) - 1
-        bpInner   = DB.countTrailingZeros ((0xffffffff .<. fromIntegral bpOuter) .|. a)
+  where bpOuter   = 32 - B.countLeadingZeros (z + 1 - a) - 1
+        bpInner   = B.countTrailingZeros ((0xffffffff .<. fromIntegral bpOuter) .|. a)
         block     = IpBlock (IpAddress a) (IpNetMask (32 - fromIntegral bpInner))
         hostMask  = comp (0xffffffff .<. fromIntegral bpInner) :: Word32
         remainder = if a + hostMask >= z
