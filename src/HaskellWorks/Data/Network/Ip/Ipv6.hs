@@ -144,10 +144,14 @@ splitIpRange (Range (IpAddress a) (IpAddress z)) = (block, remainder)
         width = B.finiteBitSize a
 
 rangeToBlocksDL :: Range IpAddress -> [IpBlock Canonical] -> [IpBlock Canonical]
-rangeToBlocksDL = error "TODO implement rangeToBlocksDL"
+rangeToBlocksDL r = do
+  let (b, remainder) = splitIpRange r
+  case remainder of
+    Just rmd -> (b:) . rangeToBlocksDL rmd
+    Nothing  -> (b:)
 
 rangeToBlocks :: Range IpAddress -> [IpBlock Canonical]
-rangeToBlocks = error "TODO implement rangeToBlocks"
+rangeToBlocks r = rangeToBlocksDL r []
 
 blockToRange :: IpBlock Canonical -> Range IpAddress
 blockToRange b = uncurry Range $ bimap firstIpAddress lastIpAddress (b, b)
