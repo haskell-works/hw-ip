@@ -13,6 +13,10 @@ module HaskellWorks.Data.Network.Ip.Ipv6
   , fromV4
   , parseIpBlock
   , masksIp
+  , showIpAddress
+  , showsIpAddress
+  , tshowIpAddress
+  , tshowIpBlock
   , firstIpAddress
   , lastIpAddress
   , rangeToBlocks
@@ -98,6 +102,24 @@ parseIpBlock t =
             Nothing    -> Left "cannot read mask"
         Nothing -> Left "cannot read addr"
     _ -> Left "invalid input string"
+
+showsIpAddress :: IpAddress -> String -> String
+showsIpAddress (IpAddress w) = shows (D.fromHostAddress6 w)
+
+showIpAddress :: IpAddress -> String
+showIpAddress ipAddress = showsIpAddress ipAddress ""
+
+tshowIpAddress :: IpAddress -> T.Text
+tshowIpAddress = T.pack . showIpAddress
+
+showsIpBlock :: IpBlock v -> String -> String
+showsIpBlock (IpBlock b (IpNetMask m)) = shows b . ('/':) . shows m
+
+showIpBlock :: IpBlock v -> String
+showIpBlock ipBlock = showsIpBlock ipBlock ""
+
+tshowIpBlock :: IpBlock v -> T.Text
+tshowIpBlock = T.pack . showIpBlock
 
 masksIp :: Word8 -> [Word32]
 masksIp m =
