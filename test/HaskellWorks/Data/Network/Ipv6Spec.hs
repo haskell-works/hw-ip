@@ -52,7 +52,7 @@ spec = describe "HaskellWorks.Data.Network.Ipv6Spec" $ do
       boundedSucc (V6.IpAddress (32, 32, 32, 32)) === V6.IpAddress (32, 32, 32, 33)
       boundedPred (V6.IpAddress (0, 0, 0, 0xffffffff)) === V6.IpAddress (0, 0, 0, 0xfffffffe)
       boundedSucc (V6.IpAddress (0, 0, 0, 0xffffffff)) === V6.IpAddress (0, 0, 1, 0)
-      boundedSucc (V6.IpAddress (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff)) === V6.IpAddress (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff)
+      boundedSucc (V6.IpAddress maxBound ) === V6.IpAddress maxBound
       boundedPred (V6.IpAddress (0, 0, 0, 0)) === V6.IpAddress (0, 0, 0, 0)
 
     it "should convert ::/128 to ranges" $ requireTest $ do
@@ -74,3 +74,22 @@ spec = describe "HaskellWorks.Data.Network.Ipv6Spec" $ do
       V6.splitIpRange (IR.Range (read "::") (read "::88")) === (V6.IpBlock (V6.IpAddress (0, 0, 0, 0)) (V6.IpNetMask 121), Just (IR.Range (read "::80") (read "::88")))
       V6.splitIpRange (IR.Range (read "::3") (read "::88")) === (V6.IpBlock (V6.IpAddress (0, 0, 0, 3)) (V6.IpNetMask 128), Just (IR.Range (read "::4") (read "::88")))
       V6.splitIpRange (IR.Range (read "::127") (read "::129")) === (V6.IpBlock (V6.IpAddress (0, 0, 0, 0x127)) (V6.IpNetMask 128), Just (IR.Range (read "::128") (read "::129")))
+
+  describe "should get blocks from ranges" $ do
+    it ":: - ::ff" $ requireTest $ do
+      V6.rangeToBlocks (R.Range (V6.IpAddress 0) (V6.IpAddress 0xff)) === [ V6.IpBlock (V6.IpAddress 0) (V6.IpNetMask 120)]
+    it "::fe - ::18e" $ requireTest $ do
+      V6.rangeToBlocks (R.Range (V6.IpAddress 0xfe) (V6.IpAddress 0x18e)) === [ V6.IpBlock (V6.IpAddress 0xfe) (V6.IpNetMask 127)
+                                                                              , V6.IpBlock (V6.IpAddress 0x100) (V6.IpNetMask 121)
+                                                                              , V6.IpBlock (V6.IpAddress 0x180) (V6.IpNetMask 125)
+                                                                              , V6.IpBlock (V6.IpAddress 0x188) (V6.IpNetMask 126)
+                                                                              , V6.IpBlock (V6.IpAddress 0x18c) (V6.IpNetMask 127)
+                                                                              , V6.IpBlock (V6.IpAddress 0x18e) (V6.IpNetMask 128)
+                                                                              ]
+    it ":: - ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff" $ requireTest $ do
+      V6.rangeToBlocks (R.Range (V6.IpAddress 0) (V6.IpAddress maxBound)) === [ V6.IpBlock (V6.IpAddress 0) (V6.IpNetMask 0)]
+
+  describe "should get blocks from ranges with difference lists" $ do
+    it "::100 - ::200" $ requireTest $ do
+      V6.rangeToBlocksDL (R.Range (V6.IpAddress 0x100) (V6.IpAddress 0x200)) [] === [ V6.IpBlock (V6.IpAddress 0x100) (V6.IpNetMask 120)
+                                                                                     , V6.IpBlock (V6.IpAddress 0x200) (V6.IpNetMask 128)]
