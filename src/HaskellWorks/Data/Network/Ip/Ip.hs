@@ -25,7 +25,7 @@ import qualified HaskellWorks.Data.Network.Ip.Ipv6 as V6
 data IpBlock v = IpBlockV4 (V4.IpBlock v) | IpBlockV6 (V6.IpBlock v)
   deriving (Eq, Ord, Generic)
 
-instance Show (IpBlock Unaligned) where
+instance Show (IpBlock v) where
   showsPrec _ (IpBlockV4 a) = shows a
   showsPrec _ (IpBlockV6 a) = shows a
 
