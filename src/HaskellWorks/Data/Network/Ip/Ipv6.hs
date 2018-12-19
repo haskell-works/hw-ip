@@ -25,13 +25,9 @@ module HaskellWorks.Data.Network.Ip.Ipv6
 import Control.Applicative
 import Control.Monad
 import Data.Bifunctor
-import Data.Bits
-import Data.Char
-import Data.Generics.Product.Any
 import Data.Maybe
 import Data.Word
 import GHC.Generics
-import HaskellWorks.Data.Bits.BitWise
 import HaskellWorks.Data.Network.Ip.Range
 import HaskellWorks.Data.Network.Ip.SafeEnum
 import HaskellWorks.Data.Network.Ip.Validity
@@ -40,12 +36,10 @@ import Text.Read
 
 import qualified Data.Bits                             as B
 import qualified Data.IP                               as D
-import qualified Data.String                           as S
 import qualified Data.Text                             as T
 import qualified HaskellWorks.Data.Network.Ip.Internal as I
 import qualified HaskellWorks.Data.Network.Ip.Ipv4     as V4
 import qualified HaskellWorks.Data.Network.Ip.Word128  as W
-import qualified Text.ParserCombinators.ReadPrec       as RP
 
 newtype IpAddress = IpAddress W.Word128 deriving (Eq, Ord, Generic, SafeEnum)
 
@@ -79,12 +73,12 @@ data IpBlock v = IpBlock
 instance Read (IpBlock Unaligned) where
   readsPrec _ s =
     case T.unpack <$> T.split (== '/') (T.pack s) of
-      [addr, mask] ->
+      [addr, msk] ->
         case readMaybe addr :: Maybe IpAddress of
           Just ipv6 ->
-            case readMaybe mask of
-              Just maskv6 ->
-                let i6b = IpBlock ipv6 maskv6 in
+            case readMaybe msk of
+              Just mskv6 ->
+                let i6b = IpBlock ipv6 mskv6 in
                   [(i6b, "") | isCanonical i6b]
               Nothing     -> []
           Nothing -> []
@@ -96,12 +90,12 @@ instance Show (IpBlock v) where
 parseIpBlock :: T.Text -> Either T.Text (IpBlock Unaligned)
 parseIpBlock t =
   case T.unpack <$> T.split (== '/') t of
-    [addr, mask] ->
+    [addr, msk] ->
       case readMaybe addr :: Maybe IpAddress of
         Just ipv6 ->
-          case readMaybe mask of
-            Just maskv6 -> Right $ IpBlock ipv6 maskv6
-            Nothing     -> Left "cannot read mask"
+          case readMaybe msk of
+            Just mskv6 -> Right $ IpBlock ipv6 mskv6
+            Nothing    -> Left "cannot read mask"
         Nothing -> Left "cannot read addr"
     _ -> Left "invalid input string"
 
@@ -133,10 +127,10 @@ fromV4 (V4.IpBlock b m) =
   IpBlock (IpAddress (0, 0, 0xFFFF, V4.word b)) (IpNetMask (96 + V4.word8 m))
 
 firstIpAddress :: IpBlock Canonical -> IpAddress
-firstIpAddress (IpBlock base _) = base
+firstIpAddress (IpBlock b _) = b
 
 lastIpAddress :: IpBlock Canonical -> IpAddress
-lastIpAddress b@(IpBlock i@(IpAddress base) (IpNetMask m)) = IpAddress (base + fromIntegral (I.blockSize128 m) - 1)
+lastIpAddress (IpBlock (IpAddress b) (IpNetMask m)) = IpAddress (b + fromIntegral (I.blockSize128 m) - 1)
 
 splitIpRange :: Range IpAddress -> (IpBlock Canonical, Maybe (Range IpAddress))
 splitIpRange (Range (IpAddress a) (IpAddress z)) = (block, remainder)

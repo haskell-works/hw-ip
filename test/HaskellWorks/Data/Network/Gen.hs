@@ -7,12 +7,11 @@ import HaskellWorks.Data.Bits.BitWise
 import HaskellWorks.Data.Network.Ip.Validity
 import Hedgehog
 
-import qualified Data.Bits                            as B
-import qualified HaskellWorks.Data.Network.Ip.Ipv4    as V4
-import qualified HaskellWorks.Data.Network.Ip.Ipv6    as V6
-import qualified HaskellWorks.Data.Network.Ip.Word128 as W
-import qualified Hedgehog.Gen                         as G
-import qualified Hedgehog.Range                       as R
+import qualified Data.Bits                         as B
+import qualified HaskellWorks.Data.Network.Ip.Ipv4 as V4
+import qualified HaskellWorks.Data.Network.Ip.Ipv6 as V6
+import qualified Hedgehog.Gen                      as G
+import qualified Hedgehog.Range                    as R
 
 canonicalIpv4Block :: MonadGen m => m (V4.IpBlock Canonical)
 canonicalIpv4Block = do

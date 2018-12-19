@@ -6,25 +6,15 @@
 {-# LANGUAGE InstanceSigs               #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TypeSynonymInstances       #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module HaskellWorks.Data.Network.Ip.Word128 where
 
-import Control.Applicative
-import Control.Monad
-import Data.Char
-import Data.Generics.Product.Any
 import Data.Maybe
 import Data.Word
-import GHC.Generics
-import Prelude                            hiding (words)
-import Text.Read
+import Prelude    hiding (words)
 
-import qualified Data.Bits                             as B
-import qualified Data.IP                               as D
-import qualified Data.String                           as S
-import qualified Data.Text                             as T
-import qualified HaskellWorks.Data.Network.Ip.Internal as I
-import qualified Text.ParserCombinators.ReadPrec       as RP
+import qualified Data.Bits as B
 
 type Word128 = (Word32, Word32, Word32, Word32)
 
