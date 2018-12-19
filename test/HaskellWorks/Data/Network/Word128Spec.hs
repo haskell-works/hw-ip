@@ -17,12 +17,18 @@ spec = describe "HaskellWorks.Data.Network.Ipv6Spec" $ do
     it "should implement +" $ requireTest $ do
       ((1, 1, 1, 1) :: W.Word128) + ((1, 1, 1, 1) :: W.Word128) === ((2, 2, 2, 2) :: W.Word128)
       ((1, 1, 1, 0xffffffff) :: W.Word128) + ((1, 1, 1, 1) :: W.Word128) === ((2, 2, 3, 0) :: W.Word128)
-      ((0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff) :: W.Word128) + ((0, 0, 0, 1) :: W.Word128) === ((0, 0, 0, 0) :: W.Word128)
+      (maxBound :: W.Word128) + ((0, 0, 0, 1) :: W.Word128) === ((0, 0, 0, 0) :: W.Word128)
 
-    it "should implement +" $ requireTest $ do
+    it "should implement -" $ requireTest $ do
       ((1, 1, 1, 1) :: W.Word128) - ((1, 1, 1, 1) :: W.Word128) === ((0, 0, 0, 0) :: W.Word128)
       ((1, 1, 1, 0xffffffff) :: W.Word128) - ((1, 1, 1, 1) :: W.Word128) === ((0, 0, 0, 0xfffffffe) :: W.Word128)
-      ((0, 0, 0, 1) :: W.Word128) - ((0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff) :: W.Word128) === ((0, 0, 0, 2) :: W.Word128)
+      ((0, 0, 0, 1) :: W.Word128) - (maxBound :: W.Word128) === ((0, 0, 0, 2) :: W.Word128)
+
+    it "should implement *" $ requireTest $ do
+      ((0, 0, 0, 0) :: W.Word128) * ((1, 1, 1, 1) :: W.Word128) === ((0, 0, 0, 0) :: W.Word128)
+      ((1, 1, 1, 1) :: W.Word128) * ((1, 1, 1, 1) :: W.Word128) === ((4, 3, 2, 1) :: W.Word128)
+      ((1, 1, 1, 0xffffffff) :: W.Word128) * ((0, 0, 0, 1) :: W.Word128) === ((1, 1, 1, 0xffffffff) :: W.Word128)
+      ((0, 0, 0, 1) :: W.Word128) * (maxBound :: W.Word128) === (maxBound :: W.Word128)
 
     it "should implement shift" $ requireTest $ do
       ((1, 1, 1, 1) :: W.Word128) `B.shift` (16 :: Int) === ((0x10000, 0x10000, 0x10000, 0x10000) :: W.Word128)
