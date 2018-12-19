@@ -7,10 +7,12 @@
 module HaskellWorks.Data.Network.Ip.Ip
   ( IpBlock(..)
   , isCanonical
+  , canonicalise
   , firstIpAddress
   , lastIpAddress
   ) where
 
+import Control.Monad
 import Data.Word
 import GHC.Generics
 import HaskellWorks.Data.Bits.BitWise
@@ -40,6 +42,10 @@ instance Read (IpBlock Unaligned) where
 isCanonical :: IpBlock v -> Bool
 isCanonical (IpBlockV4 b) = V4.isCanonical b
 isCanonical (IpBlockV6 b) = V6.isCanonical b
+
+canonicalise :: IpBlock Unaligned -> Maybe (IpBlock Canonical)
+canonicalise (IpBlockV4 (V4.IpBlock a m)) = mfilter isCanonical (Just $ IpBlockV4 (V4.IpBlock a m))
+canonicalise (IpBlockV6 (V6.IpBlock a m)) = mfilter isCanonical (Just $ IpBlockV6 (V6.IpBlock a m))
 
 firstIpAddress :: IpBlock Canonical -> (Word32, Word32, Word32, Word32)
 firstIpAddress (IpBlockV4 v4Block)                          = firstIpAddress (IpBlockV6 (V6.fromV4 v4Block))
