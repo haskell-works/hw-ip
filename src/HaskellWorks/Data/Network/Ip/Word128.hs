@@ -57,14 +57,14 @@ instance B.Bits Word128 where
   (.|.) (a, b, c, d) (e, f, g, h) = (a B..|. e, b B..|. f, c B..|. g, d B..|. h)
   xor (a, b, c, d) (e, f, g, h)   = (a `B.xor` e, b `B.xor` f, c `B.xor` g, d `B.xor` h)
   complement (a, b, c, d)         = (B.complement a, B.complement b, B.complement c, B.complement d)
-  shift w n                       = integerToWord128 $ (word128ToInteger w) `B.shift` n
+  shift w n                       = integerToWord128 $ word128ToInteger w `B.shift` n
   shiftL w n
     | n < 0 = minBound  -- This is the special case to make it behaviour as the same as Word32
-    | otherwise = integerToWord128 $ (word128ToInteger w) `B.shiftL` n
-  shiftR w n                      = integerToWord128 $ (word128ToInteger w) `B.shiftR` n
-  rotate w n                      = integerToWord128 $ (word128ToInteger w) `B.rotate` n
-  rotateL w n                     = integerToWord128 $ (word128ToInteger w) `B.rotateL` n
-  rotateR w n                     = integerToWord128 $ (word128ToInteger w) `B.rotateR` n
+    | otherwise = integerToWord128 $ word128ToInteger w `B.shiftL` n
+  shiftR w n                      = integerToWord128 $ word128ToInteger w `B.shiftR` n
+  rotate w n                      = integerToWord128 $ word128ToInteger w `B.rotate` n
+  rotateL w n                     = integerToWord128 $ word128ToInteger w `B.rotateL` n
+  rotateR w n                     = integerToWord128 $ word128ToInteger w `B.rotateR` n
   bitSize _                       = 128
   bitSizeMaybe _                  = Just 128
   isSigned _                      = False
