@@ -4,15 +4,10 @@
 
 module HaskellWorks.Data.Network.RangeSpec (spec) where
 
-import Control.Applicative
-import Data.Char                   (ord)
-import Data.Either
 import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Test.Hspec
 
-import qualified HaskellWorks.Data.Network.Ip.Ip    as V
-import qualified HaskellWorks.Data.Network.Ip.Ipv4  as V4
 import qualified HaskellWorks.Data.Network.Ip.Ipv6  as V6
 import qualified HaskellWorks.Data.Network.Ip.Range as R
 import qualified Text.Appar.String                  as AP

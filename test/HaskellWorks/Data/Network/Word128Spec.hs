@@ -7,16 +7,7 @@ import Hedgehog
 import Test.Hspec
 
 import qualified Data.Bits                            as B
-import qualified Data.Text                            as T
-import qualified HaskellWorks.Data.Network.Gen        as G
-import qualified HaskellWorks.Data.Network.Ip.Ip      as V
-import qualified HaskellWorks.Data.Network.Ip.Ipv4    as V4
-import qualified HaskellWorks.Data.Network.Ip.Ipv6    as V6
-import qualified HaskellWorks.Data.Network.Ip.Range   as IR
 import qualified HaskellWorks.Data.Network.Ip.Word128 as W
-import qualified Hedgehog.Gen                         as G
-import qualified Hedgehog.Range                       as R
-import qualified Text.Read                            as TR
 
 {-# ANN module ("HLint: ignore Redundant do"  :: String) #-}
 

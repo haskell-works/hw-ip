@@ -3,7 +3,6 @@
 
 module HaskellWorks.Data.Network.Ipv4Spec (spec) where
 
-import HaskellWorks.Data.Bits.BitWise
 import HaskellWorks.Data.Network.Ip.Internal
 import HaskellWorks.Data.Network.Ip.Ipv4
 import HaskellWorks.Data.Network.Ip.Range
@@ -13,7 +12,6 @@ import Hedgehog
 import Test.Hspec
 
 import qualified Data.List                             as DL
-import qualified Data.Text                             as T
 import qualified HaskellWorks.Data.Network.Gen         as G
 import qualified HaskellWorks.Data.Network.Ip.Internal as I
 import qualified HaskellWorks.Data.Network.Ip.Ipv4     as I
@@ -21,7 +19,6 @@ import qualified HaskellWorks.Data.Network.Ip.Range    as I
 import qualified Hedgehog.Gen                          as G
 import qualified Hedgehog.Range                        as R
 import qualified Text.Appar.String                     as AP
-import qualified Text.Read                             as TR
 
 {-# ANN module ("HLint: ignore Redundant do"  :: String) #-}
 

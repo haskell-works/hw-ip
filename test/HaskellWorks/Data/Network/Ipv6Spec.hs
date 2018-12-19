@@ -11,20 +11,15 @@ import Test.Hspec
 
 
 import qualified Data.Text                          as T
-import qualified HaskellWorks.Data.Network.Ip.Ip    as V
-import qualified HaskellWorks.Data.Network.Ip.Ipv4  as V4
-import qualified HaskellWorks.Data.Network.Ip.Ipv6  as V6
-import qualified HaskellWorks.Data.Network.Ip.Range as R
-import qualified Data.Text                          as T
 import qualified HaskellWorks.Data.Network.Gen      as G
 import qualified HaskellWorks.Data.Network.Ip.Ip    as V
 import qualified HaskellWorks.Data.Network.Ip.Ipv4  as V4
 import qualified HaskellWorks.Data.Network.Ip.Ipv6  as V6
+import qualified HaskellWorks.Data.Network.Ip.Range as R
 import qualified HaskellWorks.Data.Network.Ip.Range as IR
 
-import qualified Hedgehog.Gen                       as G
-import qualified Hedgehog.Range                     as R
-import qualified Text.Read                          as TR
+import qualified Hedgehog.Gen   as G
+import qualified Hedgehog.Range as R
 
 {-# ANN module ("HLint: ignore Redundant do"  :: String) #-}
 
@@ -49,7 +44,7 @@ spec = describe "HaskellWorks.Data.Network.Ipv6Spec" $ do
     it "should parse what it has shown" $ require $ property $ do
       a <- forAll $ G.word32 R.constantBounded
       m <- forAll $ G.word8 $ R.linear 0 128
-      let addr = V6.IpBlock (V6.IpAddress (a, 0, 0, 0)) (V6.IpNetMask 1)
+      let addr = V6.IpBlock (V6.IpAddress (a, 0, 0, 0)) (V6.IpNetMask m)
       V6.parseIpBlock (T.pack (show addr)) === Right addr
 
     it "should support enum" $ require $ property $ do

@@ -14,7 +14,7 @@ data Range a = Range
   , last  :: a
   } deriving (Eq, Ord, Show, Generic)
 
-parseRange :: Ord a => AP.Parser a -> AP.Parser (Range a)
+parseRange :: AP.Parser a -> AP.Parser (Range a)
 parseRange pa = Range <$> pa <* AP.string " - " <*> pa
 
 -- | Merge adjacent ranges if they overlap or are adjacent

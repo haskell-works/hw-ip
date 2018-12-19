@@ -11,23 +11,14 @@ module HaskellWorks.Data.Network.Ip.Ip
   , lastIpAddress
   ) where
 
-import Control.Applicative
-import Control.Monad
-import Data.Char
-import Data.Maybe
 import Data.Word
 import GHC.Generics
 import HaskellWorks.Data.Bits.BitWise
 import HaskellWorks.Data.Network.Ip.Validity
 import Text.Read
 
-import qualified Data.Bits                             as B
-import qualified Data.Text                             as T
-import qualified HaskellWorks.Data.Network.Ip.Internal as I
-import qualified HaskellWorks.Data.Network.Ip.Ipv4     as V4
-import qualified HaskellWorks.Data.Network.Ip.Ipv6     as V6
-import qualified HaskellWorks.Data.Network.Ip.Word128  as W
-import qualified Text.ParserCombinators.ReadPrec       as RP
+import qualified HaskellWorks.Data.Network.Ip.Ipv4 as V4
+import qualified HaskellWorks.Data.Network.Ip.Ipv6 as V6
 
 data IpBlock v = IpBlockV4 (V4.IpBlock v) | IpBlockV6 (V6.IpBlock v)
   deriving (Eq, Ord, Generic)
@@ -51,7 +42,7 @@ isCanonical (IpBlockV4 b) = V4.isCanonical b
 isCanonical (IpBlockV6 b) = V6.isCanonical b
 
 firstIpAddress :: IpBlock Canonical -> (Word32, Word32, Word32, Word32)
-firstIpAddress (IpBlockV4 v4Block)           = firstIpAddress (IpBlockV6 (V6.fromV4 v4Block))
+firstIpAddress (IpBlockV4 v4Block)                          = firstIpAddress (IpBlockV6 (V6.fromV4 v4Block))
 -- firstIpAddress (IpBlockV6 (V6.IpBlock ip _)) = V6.words ip
 firstIpAddress (IpBlockV6 (V6.IpBlock (V6.IpAddress ip) _)) = ip
 

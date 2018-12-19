@@ -16,6 +16,7 @@ module HaskellWorks.Data.Network.Ip.Ipv4
   , showIpAddress
   , showsIpAddress
   , tshowIpAddress
+  , tshowIpBlock
   , ipAddressToWords
   , firstIpAddress
   , lastIpAddress
@@ -27,26 +28,20 @@ module HaskellWorks.Data.Network.Ip.Ipv4
   , blockToRange
   ) where
 
-import Control.Applicative
-import Control.Monad
 import Data.Bifunctor
-import Data.Char
 import Data.Foldable
-import Data.Maybe
 import Data.Semigroup                        ((<>))
 import Data.Word
 import GHC.Generics
 import HaskellWorks.Data.Bits.BitWise
 import HaskellWorks.Data.Network.Ip.Range
 import HaskellWorks.Data.Network.Ip.Validity
-import Text.Read
 
 import qualified Data.Bits                             as B
 import qualified Data.Sequence                         as S
 import qualified Data.Text                             as T
 import qualified HaskellWorks.Data.Network.Ip.Internal as I
 import qualified Text.Appar.String                     as AP
-import qualified Text.ParserCombinators.ReadPrec       as RP
 
 newtype IpAddress = IpAddress
   { word :: Word32
@@ -81,15 +76,15 @@ instance Read (IpBlock Canonical) where
 
 -- | Canonicalise the block by zero-ing out the host bits
 canonicaliseIpBlock :: IpBlock v -> IpBlock Canonical
-canonicaliseIpBlock (IpBlock (IpAddress word) (IpNetMask mask)) = IpBlock (IpAddress newWord) (IpNetMask mask)
-  where bp = fromIntegral (32 - mask)
-        newWord = (word .>. bp) .<. bp
+canonicaliseIpBlock (IpBlock (IpAddress w) (IpNetMask m)) = IpBlock (IpAddress newWord) (IpNetMask m)
+  where bp = fromIntegral (32 - m)
+        newWord = (w .>. bp) .<. bp
 
 firstIpAddress :: IpBlock v -> IpAddress
-firstIpAddress (IpBlock base _) = base
+firstIpAddress (IpBlock b _) = b
 
 lastIpAddress :: IpBlock v -> IpAddress
-lastIpAddress b@(IpBlock (IpAddress base) (IpNetMask m)) = IpAddress (base + fromIntegral (I.blockSize m) - 1)
+lastIpAddress (IpBlock (IpAddress b) (IpNetMask m)) = IpAddress (b + fromIntegral (I.blockSize m) - 1)
 
 bitPower :: IpNetMask -> Word64
 bitPower (IpNetMask m) = fromIntegral (32 - m)
@@ -177,10 +172,10 @@ collapseIpBlocks tomerge =
       case S.viewr m of
         S.EmptyR -> go (m S.|> b) bs
         m' S.:> bp -> do
-          let sp@(IpBlock _ (IpNetMask mask)) = superBlock bp
-          let sp'@(IpBlock _ (IpNetMask mask')) = superBlock b
+          let sp@(IpBlock _ (IpNetMask msk)) = superBlock bp
+          let sp'@(IpBlock _ (IpNetMask msk')) = superBlock b
           if sp == sp' then go m' (sp : bs)
-          else if mask > mask' then
+          else if msk > msk' then
                  m : go (S.empty S.|> b) bs
                else
                  go (m S.|> b) bs
@@ -198,7 +193,7 @@ rangeToBlocksDL :: Range IpAddress -> [IpBlock Canonical] -> [IpBlock Canonical]
 rangeToBlocksDL r = do
   let (b, remainder) = splitIpRange r
   case remainder of
-    Just rem -> (b:) . rangeToBlocksDL rem
+    Just rmd -> (b:) . rangeToBlocksDL rmd
     Nothing  -> (b:)
 
 rangeToBlocks :: Range IpAddress -> [IpBlock Canonical]
