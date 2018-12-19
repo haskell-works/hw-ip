@@ -35,6 +35,7 @@ import Data.Word
 import GHC.Generics
 import HaskellWorks.Data.Bits.BitWise
 import HaskellWorks.Data.Network.Ip.Range
+import HaskellWorks.Data.Network.Ip.SafeEnum
 import HaskellWorks.Data.Network.Ip.Validity
 
 import qualified Data.Bits                             as B
@@ -45,7 +46,7 @@ import qualified Text.Appar.String                     as AP
 
 newtype IpAddress = IpAddress
   { word :: Word32
-  } deriving (Enum, Bounded, Eq, Ord, Generic)
+  } deriving (Enum, Bounded, Eq, Ord, Generic, SafeEnum)
 
 instance Show IpAddress where
   showsPrec _ = showsIpAddress
