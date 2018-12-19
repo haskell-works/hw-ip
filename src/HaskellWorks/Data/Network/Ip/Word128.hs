@@ -1,11 +1,8 @@
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE DuplicateRecordFields      #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE InstanceSigs               #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE TypeSynonymInstances       #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE InstanceSigs          #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module HaskellWorks.Data.Network.Ip.Word128 where
@@ -19,8 +16,8 @@ import qualified Data.Bits as B
 type Word128 = (Word32, Word32, Word32, Word32)
 
 instance Enum Word128 where
-  fromEnum w = fromIntegral . word128ToInteger $ w
-  toEnum i   = integerToWord128 $ fromIntegral i
+  fromEnum  = fromIntegral . word128ToInteger
+  toEnum i  = integerToWord128 $ fromIntegral i
   succ (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff) = (0, 0, 0, 0)
   succ (a,          0xffffffff, 0xffffffff, 0xffffffff) = (succ a, 0, 0, 0)
   succ (a,                   b, 0xffffffff, 0xffffffff) = (a, succ b, 0, 0)
@@ -71,7 +68,7 @@ instance B.Bits Word128 where
   bitSize _                       = 128
   bitSizeMaybe _                  = Just 128
   isSigned _                      = False
-  testBit w n                     = B.testBit (word128ToInteger w) n
+  testBit w                       = B.testBit (word128ToInteger w)
   bit n                           = integerToWord128 $ B.bit n
   popCount w                      = B.popCount $ word128ToInteger w
 
