@@ -6,7 +6,6 @@ import Data.Char
 import Data.Word
 import HaskellWorks.Data.Bits.BitWise
 
-import qualified Data.Text         as T
 import qualified Text.Appar.String as AP
 
 fourOctetsToWord32 :: Word8 -> Word8 -> Word8 -> Word8 -> Word32
@@ -24,11 +23,11 @@ infixl 4 #<*>#
   where paste a b = a * 10 + b
 
 octet :: AP.Parser Word8
-octet = AP.try ((ds 1 2 #<*>#  d 5  ) #<*># ds 0 5)
-  <|>   AP.try ((ds 1 2 #<*># ds 0 4) #<*># ds 0 9)
-  <|>   AP.try (( d 1   #<*># ds 0 9) #<*># ds 0 9)
-  <|>   AP.try ( ds 1 9 #<*># ds 0 9)
-  <|>            ds 0 9
+octet = AP.try ((digits 1 2 #<*>#  digit 5  ) #<*># digits 0 5)
+  <|>   AP.try ((digits 1 2 #<*># digits 0 4) #<*># digits 0 9)
+  <|>   AP.try (( digit 1   #<*># digits 0 9) #<*># digits 0 9)
+  <|>   AP.try ( digits 1 9 #<*># digits 0 9)
+  <|>            digits 0 9
 
 whitespace :: AP.Parser ()
 whitespace = void $ many (AP.satisfy isSpace)
@@ -41,16 +40,16 @@ ipv4Address = fourOctetsToWord32
   <*>  octet
 
 ipv4NetMask :: AP.Parser Word8
-ipv4NetMask =  AP.try (d 3   #<*># ds 0 2)
-  <|>          AP.try (d 2   #<*># ds 0 9)
-  <|>          AP.try (d 1   #<*># ds 0 9)
-  <|>           ds 0 9
+ipv4NetMask =  AP.try (digit 3   #<*># digits 0 2)
+  <|>          AP.try (digit 2   #<*># digits 0 9)
+  <|>          AP.try (digit 1   #<*># digits 0 9)
+  <|>           digits 0 9
 
-d :: Int -> AP.Parser Word8
-d c      = fromIntegral . (+ (-48)) . ord <$> AP.satisfy (== chr (c + 48))
+digit :: Int -> AP.Parser Word8
+digit c      = fromIntegral . (+ (-48)) . ord <$> AP.satisfy (== chr (c + 48))
 
-ds :: Int -> Int -> AP.Parser Word8
-ds c1 c2 = fromIntegral . (+ (-48)) . ord <$> AP.satisfy (\c -> c >= chr (c1 + 48) && c <= chr (c2 + 48))
+digits :: Int -> Int -> AP.Parser Word8
+digits c1 c2 = fromIntegral . (+ (-48)) . ord <$> AP.satisfy (\c -> c >= chr (c1 + 48) && c <= chr (c2 + 48))
 
 ipv4Block :: AP.Parser (Word32, Word8)
 ipv4Block = do

@@ -19,14 +19,12 @@ module HaskellWorks.Data.Network.Ip.Ipv6
   , rangeToBlocksDL
   , blockToRange
   , isCanonical
+  , splitIpRange
   ) where
 
 import Control.Applicative
 import Control.Monad
 import Data.Bifunctor
-import Data.Bits
-import Data.Char
-import Data.Generics.Product.Any
 import Data.Maybe
 import Data.Word
 import GHC.Generics
@@ -38,28 +36,12 @@ import Text.Read
 
 import qualified Data.Bits                             as B
 import qualified Data.IP                               as D
-import qualified Data.String                           as S
 import qualified Data.Text                             as T
 import qualified HaskellWorks.Data.Network.Ip.Internal as I
 import qualified HaskellWorks.Data.Network.Ip.Ipv4     as V4
-import qualified Text.ParserCombinators.ReadPrec       as RP
+import qualified HaskellWorks.Data.Network.Ip.Word128  as W
 
-newtype IpAddress = IpAddress
-  { words :: (Word32, Word32, Word32, Word32)
-  } deriving (Eq, Ord, Generic)
-
-instance SafeEnum IpAddress where
-  safeSucc (IpAddress (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff)) = Nothing
-  safeSucc (IpAddress (a,          0xffffffff, 0xffffffff, 0xffffffff)) = Just (IpAddress (succ a, 0, 0, 0))
-  safeSucc (IpAddress (a,                   b, 0xffffffff, 0xffffffff)) = Just (IpAddress (a, succ b, 0, 0))
-  safeSucc (IpAddress (a,                   b,          c, 0xffffffff)) = Just (IpAddress (a, b, succ c, 0))
-  safeSucc (IpAddress (a,                   b,          c,          d)) = Just (IpAddress (a, b, c, succ d))
-
-  safePred (IpAddress (0, 0, 0, 0)) = Nothing
-  safePred (IpAddress (a, 0, 0, 0)) = Just (IpAddress (    pred a, 0xffffffff, 0xffffffff, 0xffffffff))
-  safePred (IpAddress (a, b, 0, 0)) = Just (IpAddress (         a,     pred b, 0xffffffff, 0xffffffff))
-  safePred (IpAddress (a, b, c, 0)) = Just (IpAddress (         a,          b,     pred c, 0xffffffff))
-  safePred (IpAddress (a, b, c, d)) = Just (IpAddress (         a,          b,          c,     pred d))
+newtype IpAddress = IpAddress W.Word128 deriving (Eq, Ord, Generic, SafeEnum)
 
 instance Show IpAddress where
   showsPrec _ (IpAddress w) = shows (D.fromHostAddress6 w)
@@ -91,12 +73,12 @@ data IpBlock v = IpBlock
 instance Read (IpBlock Unaligned) where
   readsPrec _ s =
     case T.unpack <$> T.split (== '/') (T.pack s) of
-      [addr, mask] ->
+      [addr, msk] ->
         case readMaybe addr :: Maybe IpAddress of
           Just ipv6 ->
-            case readMaybe mask of
-              Just maskv6 ->
-                let i6b = IpBlock ipv6 maskv6 in
+            case readMaybe msk of
+              Just mskv6 ->
+                let i6b = IpBlock ipv6 mskv6 in
                   [(i6b, "") | isCanonical i6b]
               Nothing     -> []
           Nothing -> []
@@ -108,12 +90,12 @@ instance Show (IpBlock v) where
 parseIpBlock :: T.Text -> Either T.Text (IpBlock Unaligned)
 parseIpBlock t =
   case T.unpack <$> T.split (== '/') t of
-    [addr, mask] ->
+    [addr, msk] ->
       case readMaybe addr :: Maybe IpAddress of
         Just ipv6 ->
-          case readMaybe mask of
-            Just maskv6 -> Right $ IpBlock ipv6 maskv6
-            Nothing     -> Left "cannot read mask"
+          case readMaybe msk of
+            Just mskv6 -> Right $ IpBlock ipv6 mskv6
+            Nothing    -> Left "cannot read mask"
         Nothing -> Left "cannot read addr"
     _ -> Left "invalid input string"
 
@@ -121,7 +103,7 @@ masksIp :: Word8 -> [Word32]
 masksIp m =
   let e = 0xFFFFFFFF :: Word32
       -- bits: number of bits which should be 1
-      maskValue bits = e `shiftR` (32 - bits) in
+      maskValue bits = e `B.shiftR` (32 - bits) in
     if m < 32 then
       [maskValue (32 - fromIntegral m), e, e, e]
     else if m < 64 then
@@ -134,39 +116,32 @@ masksIp m =
       [0, 0, 0, 0]
 
 isCanonical :: IpBlock v -> Bool
-isCanonical (IpBlock b (IpNetMask m)) =
+isCanonical (IpBlock (IpAddress w) (IpNetMask m)) =
   let lt = masksIp m
-      ipv6 = I.word32x4ToWords (words b) in
-    ipv6 == zipWith (.&.) ipv6 (zipWith xor ipv6 lt)
+      ipv6 = I.word32x4ToWords w in
+    ipv6 == zipWith (B..&.) ipv6 (zipWith B.xor ipv6 lt)
 
 fromV4 :: V4.IpBlock Canonical -> IpBlock v
 fromV4 (V4.IpBlock b m) =
   -- RFC-4291, "IPv4-Mapped IPv6 Address"
   IpBlock (IpAddress (0, 0, 0xFFFF, V4.word b)) (IpNetMask (96 + V4.word8 m))
 
-intValue :: IpAddress -> Integer
-intValue (IpAddress (a, b, c, d)) =
-  let a' = fromIntegral a `shift` 96
-      b' = fromIntegral b `shift` 64
-      c' = fromIntegral c `shift` 32
-      d' = fromIntegral d `shift` 00
-  in a' .|. b' .|. c' .|. d'
-
-ipValue :: Integer -> IpAddress
-ipValue i =
-  let i' = fromIntegral i :: Integer
-      a  = fromIntegral (i' `B.shiftR` 96 B..&. 0xffffffff)
-      b  = fromIntegral (i' `B.shiftR` 64 B..&. 0xffffffff)
-      c  = fromIntegral (i' `B.shiftR` 32 B..&. 0xffffffff)
-      d  = fromIntegral (i' `B.shiftR` 00 B..&. 0xffffffff)
-  in IpAddress (a, b, c, d)
-
 firstIpAddress :: IpBlock Canonical -> IpAddress
-firstIpAddress (IpBlock base _) = base
+firstIpAddress (IpBlock b _) = b
 
 lastIpAddress :: IpBlock Canonical -> IpAddress
-lastIpAddress b@(IpBlock i@(IpAddress base) (IpNetMask m)) =
-  ipValue $ intValue i + fromIntegral (I.blockSize128 m) - 1
+lastIpAddress (IpBlock (IpAddress b) (IpNetMask m)) = IpAddress (b + fromIntegral (I.blockSize128 m) - 1)
+
+splitIpRange :: Range IpAddress -> (IpBlock Canonical, Maybe (Range IpAddress))
+splitIpRange (Range (IpAddress a) (IpAddress z)) = (block, remainder)
+  where bpOuter   = width - B.countLeadingZeros (z + 1 - a) - 1
+        bpInner   = B.countTrailingZeros ((maxBound `B.shiftL` fromIntegral bpOuter) B..|. a)
+        block     = IpBlock (IpAddress a) (IpNetMask (fromIntegral (width - bpInner)))
+        hostMask  = B.complement (maxBound `B.shiftL` fromIntegral bpInner)
+        remainder = if a + hostMask >= z
+          then Nothing
+          else Just (Range (IpAddress (a + hostMask + 1)) (IpAddress z))
+        width = B.finiteBitSize a
 
 rangeToBlocksDL :: Range IpAddress -> [IpBlock Canonical] -> [IpBlock Canonical]
 rangeToBlocksDL = error "TODO implement rangeToBlocksDL"
