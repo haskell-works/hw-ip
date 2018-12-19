@@ -49,7 +49,7 @@ word128ToInteger (a, b, c, d) = let a' = fromIntegral a `B.shift` 96
 instance Num Word128 where
   (+) l r     = integerToWord128 $ (word128ToInteger l) + (word128ToInteger r)
   (-) l r     = integerToWord128 $ (word128ToInteger l) - (word128ToInteger r)
-  (*)         = undefined
+  (*) l r     = integerToWord128 $ (word128ToInteger l) * (word128ToInteger r)
   abs a       = a
   signum (0, 0, 0, 0) = minBound
   signum _            = 1
