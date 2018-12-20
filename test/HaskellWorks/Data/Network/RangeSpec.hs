@@ -8,6 +8,7 @@ import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Test.Hspec
 
+import qualified HaskellWorks.Data.Network.Ip.Ipv4  as V4
 import qualified HaskellWorks.Data.Network.Ip.Ipv6  as V6
 import qualified HaskellWorks.Data.Network.Ip.Range as R
 import qualified Text.Appar.String                  as AP
@@ -39,3 +40,9 @@ spec = describe "HaskellWorks.Data.Network.RangeSpec" $ do
     it "should parse dash-delimited ranges" $ requireTest $ do
       AP.runParser (AP.try (R.parseRange AP.alphaNum)) "a b"   === (Nothing               , "a b")
       AP.runParser (AP.try (R.parseRange AP.alphaNum)) "a - b" === (Just (R.Range 'a' 'b'), ""   )
+
+    it "should parse ip address ranges" $ requireTest $ do
+      let r1 = [ R.Range (V4.IpAddress 0x00000000) (V4.IpAddress 0x0001ffff)
+               , R.Range (V4.IpAddress 0x0000ffff) (V4.IpAddress 0x00ffffff)]
+      let r2 = [ R.Range (V4.IpAddress 0x00000000) (V4.IpAddress 0x00ffffff)]
+      R.mergeRanges r1 === r2

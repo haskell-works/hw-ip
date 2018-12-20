@@ -45,7 +45,7 @@ import qualified HaskellWorks.Data.Network.Ip.Internal as I
 import qualified HaskellWorks.Data.Network.Ip.Ipv4     as V4
 import qualified HaskellWorks.Data.Network.Ip.Word128  as W
 
-newtype IpAddress = IpAddress W.Word128 deriving (Eq, Ord, Generic, SafeEnum)
+newtype IpAddress = IpAddress W.Word128 deriving (Enum, Eq, Ord, Generic, SafeEnum)
 
 instance Show IpAddress where
   showsPrec _ (IpAddress w) = shows (D.fromHostAddress6 w)
