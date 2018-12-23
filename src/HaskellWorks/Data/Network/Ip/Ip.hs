@@ -49,7 +49,6 @@ canonicalise (IpBlockV6 (V6.IpBlock a m)) = mfilter isCanonical (Just $ IpBlockV
 
 firstIpAddress :: IpBlock Canonical -> (Word32, Word32, Word32, Word32)
 firstIpAddress (IpBlockV4 v4Block)                          = firstIpAddress (IpBlockV6 (V6.fromV4 v4Block))
--- firstIpAddress (IpBlockV6 (V6.IpBlock ip _)) = V6.words ip
 firstIpAddress (IpBlockV6 (V6.IpBlock (V6.IpAddress ip) _)) = ip
 
 lastIpAddress :: IpBlock Canonical -> (Word32, Word32, Word32, Word32)
