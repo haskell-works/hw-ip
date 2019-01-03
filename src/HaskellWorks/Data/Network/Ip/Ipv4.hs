@@ -13,6 +13,7 @@ module HaskellWorks.Data.Network.Ip.Ipv4
   , isCanonical
   , splitBlock
   , parseIpAddress
+  , parseIpAddressAsBlock
   , showIpAddress
   , showsIpAddress
   , tshowIpAddress
@@ -28,6 +29,7 @@ module HaskellWorks.Data.Network.Ip.Ipv4
   , blockToRange
   ) where
 
+import Control.Applicative                   ((<|>))
 import Data.Bifunctor
 import Data.Foldable
 import Data.Semigroup                        ((<>))
@@ -70,10 +72,10 @@ instance Show (IpBlock v) where
   showsPrec _ = showsIpBlock
 
 instance Read (IpBlock Unaligned) where
-  readsPrec = I.readsPrecOnParser parseUnalignedIpBlock
+  readsPrec = I.readsPrecOnParser (AP.try parseUnalignedIpBlock <|> parseIpAddressAsBlock)
 
 instance Read (IpBlock Canonical) where
-  readsPrec = I.readsPrecOnParser parseCanonicalIpBlock
+  readsPrec = I.readsPrecOnParser (AP.try parseCanonicalIpBlock <|> parseIpAddressAsBlock)
 
 -- | Canonicalise the block by zero-ing out the host bits
 canonicaliseIpBlock :: IpBlock v -> IpBlock Canonical
@@ -138,6 +140,9 @@ ipAddressToWords (IpAddress w) =
 
 parseIpAddress :: AP.Parser IpAddress
 parseIpAddress = IpAddress <$> I.ipv4Address
+
+parseIpAddressAsBlock :: AP.Parser (IpBlock v)
+parseIpAddressAsBlock = (\addr -> IpBlock addr (IpNetMask 32)) <$> parseIpAddress
 
 parseUnalignedIpBlock :: AP.Parser (IpBlock Unaligned)
 parseUnalignedIpBlock = do
