@@ -4,7 +4,6 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs               #-}
-{-# LANGUAGE TupleSections              #-}
 
 module HaskellWorks.Data.Network.Ip.Ipv4
   ( IpAddress(..)
@@ -14,6 +13,7 @@ module HaskellWorks.Data.Network.Ip.Ipv4
   , isCanonical
   , splitBlock
   , parseIpAddress
+  , parseIpAddressAsBlock
   , showIpAddress
   , showsIpAddress
   , tshowIpAddress
