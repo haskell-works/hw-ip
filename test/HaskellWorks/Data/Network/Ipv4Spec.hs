@@ -71,6 +71,9 @@ spec = describe "HaskellWorks.Data.Network.Ipv4Spec" $ do
       read "1.2.0.0/16" === I.IpBlock @Unaligned (I.IpAddress 0x01020000) (I.IpNetMask 16)
       read "1.2.3.4/32" === I.IpBlock @Unaligned (I.IpAddress 0x01020304) (I.IpNetMask 32)
 
+    it "should read blocks without masks as /32" $ requireTest $ do
+      read "1.0.0.0" === I.IpBlock @Unaligned (I.IpAddress 0x01000000) (I.IpNetMask 32)
+
     it "should implement splitBlock" $ requireTest $ do
       I.splitBlock (I.IpBlock (I.IpAddress 0x00000000) (I.IpNetMask 32)) === Nothing
       I.splitBlock (I.IpBlock (I.IpAddress 0x00000000) (I.IpNetMask 31)) === Just (I.IpBlock (I.IpAddress 0x00000000) (I.IpNetMask 32), I.IpBlock (I.IpAddress 0x00000001) (I.IpNetMask 32))
