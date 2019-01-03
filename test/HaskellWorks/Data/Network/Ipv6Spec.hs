@@ -41,6 +41,9 @@ spec = describe "HaskellWorks.Data.Network.Ipv6Spec" $ do
       read "1234::/16"      === V6.IpBlock @Unaligned (V6.IpAddress (0x12340000, 0       , 0, 0)) (V6.IpNetMask  16)
       read "12:34::/32"     === V6.IpBlock @Unaligned (V6.IpAddress (0x120034  , 0       , 0, 0)) (V6.IpNetMask  32)
 
+    it "should read block without mask as /128" $ requireTest $ do
+      read "1:2:3:4::"      === V6.IpBlock @Unaligned (V6.IpAddress (0x10002   , 0x30004 , 0, 0)) (V6.IpNetMask 128)
+
     it "should parse what it has shown" $ require $ property $ do
       a <- forAll $ G.word32 R.constantBounded
       m <- forAll $ G.word8 $ R.linear 0 128

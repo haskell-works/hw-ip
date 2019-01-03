@@ -86,6 +86,10 @@ instance Read (IpBlock Unaligned) where
                   [(i6b, "") | isCanonical i6b]
               Nothing     -> []
           Nothing -> []
+      [addr] ->
+        case readMaybe addr :: Maybe IpAddress of
+          Just ipv6 -> let i6b = IpBlock ipv6 (IpNetMask 128) in [(i6b, "") | isCanonical i6b]
+          Nothing   -> []
       _ -> []
 
 instance Show (IpBlock v) where
