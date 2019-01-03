@@ -15,6 +15,7 @@ cabal.sandbox.config
 *.aux
 *.hp
 .ghc.environment*
+cabal.project.local*
 
 /*.submodules
 /.stack-work/
