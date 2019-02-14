@@ -11,8 +11,7 @@ author: John Ky,
 homepage: https://github.com/haskell-works/hw-ip#readme
 bug-reports: https://github.com/haskell-works/hw-ip/issues
 synopsis: Library for manipulating IP addresses and CIDR blocks
-description:
-    Please see README.md
+description: Library for manipulating IP addresses and CIDR blocks. Please see README.md
 category: Network
 build-type: Simple
 extra-source-files:
