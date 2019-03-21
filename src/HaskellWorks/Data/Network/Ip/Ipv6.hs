@@ -10,6 +10,8 @@ module HaskellWorks.Data.Network.Ip.Ipv6
   ( IpAddress(..)
   , IpNetMask(..)
   , IpBlock(..)
+  , fromIpv4
+  , fromIpv4Block
   , fromV4
   , parseIpBlock
   , masksIp
@@ -147,10 +149,17 @@ isCanonical (IpBlock (IpAddress w) (IpNetMask m)) =
       ipv6 = I.word32x4ToWords w in
     ipv6 == zipWith (B..&.) ipv6 (zipWith B.xor ipv6 lt)
 
+{-# DEPRECATED fromV4 "Deprecated due to poor naming. Use fromIpv4Block instead." #-}
 fromV4 :: V4.IpBlock Canonical -> IpBlock v
-fromV4 (V4.IpBlock b m) =
+fromV4 = fromIpv4Block
+
+fromIpv4Block :: V4.IpBlock Canonical -> IpBlock v
+fromIpv4Block (V4.IpBlock b m) =
   -- RFC-4291, "IPv4-Mapped IPv6 Address"
-  IpBlock (IpAddress (0, 0, 0xFFFF, V4.word b)) (IpNetMask (96 + V4.word8 m))
+  IpBlock (fromIpv4 b) (IpNetMask (96 + V4.word8 m))
+
+fromIpv4 :: V4.IpAddress -> IpAddress
+fromIpv4 (V4.IpAddress w32) = IpAddress (0, 0, 0xFFFF, w32)
 
 firstIpAddress :: IpBlock Canonical -> IpAddress
 firstIpAddress (IpBlock b _) = b
