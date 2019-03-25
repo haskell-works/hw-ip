@@ -25,6 +25,7 @@ module HaskellWorks.Data.Network.Ip.Ipv6
   , rangeToBlocksDL
   , blockToRange
   , isCanonical
+  , canonicaliseIpBlock
   , splitIpRange
   ) where
 
@@ -144,10 +145,9 @@ masksIp m =
       [0, 0, 0, 0]
 
 isCanonical :: IpBlock v -> Bool
-isCanonical (IpBlock (IpAddress w) (IpNetMask m)) =
-  let lt = masksIp m
-      ipv6 = I.word32x4ToWords w in
-    ipv6 == zipWith (B..&.) ipv6 (zipWith B.xor ipv6 lt)
+isCanonical block@(IpBlock (IpAddress w) (IpNetMask m)) =
+  let IpBlock (IpAddress cw) (IpNetMask cm) = canonicaliseIpBlock block
+  in cw == w && cm == m
 
 {-# DEPRECATED fromV4 "Deprecated due to poor naming. Use fromIpv4Block instead." #-}
 fromV4 :: V4.IpBlock Canonical -> IpBlock v
@@ -160,6 +160,16 @@ fromIpv4Block (V4.IpBlock b m) =
 
 fromIpv4 :: V4.IpAddress -> IpAddress
 fromIpv4 (V4.IpAddress w32) = IpAddress (0, 0, 0xFFFF, w32)
+
+canonicaliseIpBlock :: IpBlock v -> IpBlock Canonical
+canonicaliseIpBlock (IpBlock (IpAddress w) (IpNetMask m))
+  = case zipWith (B..&.) ipv6 (zipWith B.xor ipv6 masks) of
+    [nw1,nw2,nw3,nw4] -> IpBlock (IpAddress (nw1, nw2, nw3, nw4)) (IpNetMask m)
+    _                 -> error "Very mal-formed IPv6. This should never happen."
+  where
+    masks = masksIp m
+    ipv6 = I.word32x4ToWords w
+
 
 firstIpAddress :: IpBlock Canonical -> IpAddress
 firstIpAddress (IpBlock b _) = b
