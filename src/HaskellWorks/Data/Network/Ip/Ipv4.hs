@@ -207,3 +207,6 @@ rangeToBlocks r = rangeToBlocksDL r []
 
 blockToRange :: IpBlock Canonical -> Range IpAddress
 blockToRange b = uncurry Range $ bimap firstIpAddress lastIpAddress (b, b)
+
+instance Contains (IpBlock a) where
+  contains l r = firstIpAddress l <= firstIpAddress r && lastIpAddress l >= lastIpAddress r

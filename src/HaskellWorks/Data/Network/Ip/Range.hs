@@ -6,6 +6,7 @@ module HaskellWorks.Data.Network.Ip.Range where
 
 import GHC.Generics
 import HaskellWorks.Data.Network.Ip.SafeEnum
+import Prelude                               hiding (last)
 
 import qualified Text.Appar.String as AP
 
@@ -25,3 +26,10 @@ mergeRanges (r1@(Range f1 l1):r2@(Range f2 l2):rs)
   where nr = Range f1 (max l1 l2)
 mergeRanges [r] = [r]
 mergeRanges [] = []
+
+class Contains a where
+  -- | 'left' contains 'right', with the possibility of one or both of the boundaries being the same.
+  contains :: a -> a -> Bool
+
+instance Ord a => Contains (Range a) where
+  contains l r = first l <= first r && last l >= last r
