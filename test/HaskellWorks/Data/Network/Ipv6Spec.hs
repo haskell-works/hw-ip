@@ -78,6 +78,23 @@ spec = describe "HaskellWorks.Data.Network.Ipv6Spec" $ do
       V6.splitIpRange (IR.Range (read "::3") (read "::88")) === (V6.IpBlock (V6.IpAddress (0, 0, 0, 3)) (V6.IpNetMask 128), Just (IR.Range (read "::4") (read "::88")))
       V6.splitIpRange (IR.Range (read "::127") (read "::129")) === (V6.IpBlock (V6.IpAddress (0, 0, 0, 0x127)) (V6.IpNetMask 128), Just (IR.Range (read "::128") (read "::129")))
 
+    it "should canonicalise block" $ requireTest $ do
+      let ipv4ify w32 block = V6.IpBlock (V6.IpAddress (0x00000000, 0x00000000, 0x0000ffff, w32)) (V6.IpNetMask $ block + 96)
+      -- These are the same tests we run for IPv4
+      V6.canonicaliseIpBlock (ipv4ify 0x01020304 32) === ipv4ify 0x01020304 32
+      V6.canonicaliseIpBlock (ipv4ify 0x01020304 24) === ipv4ify 0x01020300 24
+      V6.canonicaliseIpBlock (ipv4ify 0x01020304 16) === ipv4ify 0x01020000 16
+      V6.canonicaliseIpBlock (ipv4ify 0x01020304  8) === ipv4ify 0x01000000  8
+
+      -- Some IPv6 specific tests.
+      let ipv6 = V6.IpAddress (0xdeadbeef, 0xfeedface, 0xcafebabe, 0xbaadc0de)
+      V6.canonicaliseIpBlock (V6.IpBlock ipv6 (V6.IpNetMask 128)) === V6.IpBlock ipv6                                                            (V6.IpNetMask 128)
+      V6.canonicaliseIpBlock (V6.IpBlock ipv6 (V6.IpNetMask 112)) === V6.IpBlock (V6.IpAddress (0xdeadbeef, 0xfeedface, 0xcafebabe, 0xbaad0000)) (V6.IpNetMask 112)
+      V6.canonicaliseIpBlock (V6.IpBlock ipv6 (V6.IpNetMask  80)) === V6.IpBlock (V6.IpAddress (0xdeadbeef, 0xfeedface, 0xcafe0000, 0x00000000)) (V6.IpNetMask  80)
+      V6.canonicaliseIpBlock (V6.IpBlock ipv6 (V6.IpNetMask  48)) === V6.IpBlock (V6.IpAddress (0xdeadbeef, 0xfeed0000, 0x00000000, 0x00000000)) (V6.IpNetMask  48)
+      V6.canonicaliseIpBlock (V6.IpBlock ipv6 (V6.IpNetMask  16)) === V6.IpBlock (V6.IpAddress (0xdead0000, 0x00000000, 0x00000000, 0x00000000)) (V6.IpNetMask  16)
+      V6.canonicaliseIpBlock (V6.IpBlock ipv6 (V6.IpNetMask   0)) === V6.IpBlock (V6.IpAddress (0x00000000, 0x00000000, 0x00000000, 0x00000000)) (V6.IpNetMask   0)
+
   describe "should get blocks from ranges" $ do
     it ":: - ::ff" $ requireTest $ do
       V6.rangeToBlocks (R.Range (V6.IpAddress 0) (V6.IpAddress 0xff)) === [ V6.IpBlock (V6.IpAddress 0) (V6.IpNetMask 120)]
