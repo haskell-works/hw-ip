@@ -48,7 +48,7 @@ import qualified HaskellWorks.Data.Network.Ip.Internal as I
 import qualified HaskellWorks.Data.Network.Ip.Ipv4     as V4
 import qualified HaskellWorks.Data.Network.Ip.Word128  as W
 
-newtype IpAddress = IpAddress W.Word128 deriving (Enum, Eq, Ord, Generic, SafeEnum)
+newtype IpAddress = IpAddress W.Word128 deriving (Enum, Eq, Ord, Bounded, Generic, SafeEnum)
 
 instance Show IpAddress where
   showsPrec _ (IpAddress w) = shows (D.fromHostAddress6 w)
@@ -64,6 +64,10 @@ newtype IpNetMask = IpNetMask
   { word :: Word8
   } deriving (Enum, Eq, Ord, Show, Generic)
 
+instance Bounded IpNetMask where
+  minBound = IpNetMask 0
+  maxBound = IpNetMask 128
+
 instance Read IpNetMask where
   readsPrec _ s =
     case IpNetMask <$> m of
@@ -75,7 +79,7 @@ instance Read IpNetMask where
 data IpBlock v = IpBlock
   { base :: !IpAddress
   , mask :: !IpNetMask
-  } deriving (Eq, Ord, Generic)
+  } deriving (Eq, Ord, Bounded, Generic)
 
 instance Read (IpBlock Unaligned) where
   readsPrec _ s =

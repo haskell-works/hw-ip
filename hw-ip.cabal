@@ -1,7 +1,7 @@
-cabal-version: 1.12
+cabal-version: 2.2
 name: hw-ip
-version: 2.3.0.0
-license: BSD3
+version: 2.3.1.0
+license: BSD-3-Clause
 license-file: LICENSE
 copyright: 2018 John Ky, David Turnbull, Jian Wan
 maintainer: newhoggy@gmail.com
@@ -34,7 +34,6 @@ library
       HaskellWorks.Data.Network.Ip.Word128
     hs-source-dirs: src
     other-modules:
-        Paths_hw_ip
     default-language: Haskell2010
     ghc-options:
       -Wall
@@ -64,7 +63,6 @@ test-suite hw-ip-test
         HaskellWorks.Data.Network.Ipv6Spec
         HaskellWorks.Data.Network.RangeSpec
         HaskellWorks.Data.Network.Word128Spec
-        Paths_hw_ip
     default-language: Haskell2010
     ghc-options:
       -Wall
