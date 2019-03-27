@@ -59,14 +59,18 @@ instance Read IpAddress where
 
 newtype IpNetMask = IpNetMask
   { word8 :: Word8
-  } deriving (Enum, Bounded, Eq, Ord, Show, Generic)
+  } deriving (Enum, Eq, Ord, Show, Generic)
+
+instance Bounded IpNetMask where
+  minBound = IpNetMask 0
+  maxBound = IpNetMask 32
 
 -- | An IP block.  The type parameter determines whether or not the value of the type is
 -- canonical.
 data IpBlock v = IpBlock
   { base :: !IpAddress
   , mask :: !IpNetMask
-  } deriving (Eq, Ord, Generic)
+  } deriving (Eq, Ord, Generic, Bounded)
 
 instance Show (IpBlock v) where
   showsPrec _ = showsIpBlock
