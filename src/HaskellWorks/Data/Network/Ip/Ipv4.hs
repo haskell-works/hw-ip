@@ -171,7 +171,7 @@ splitIpRange (Range (IpAddress a) (IpAddress z)) = (block, remainder)
           else Just (Range (IpAddress (a + hostMask + 1)) (IpAddress z))
         width = B.finiteBitSize a
 
--- assume distinct & sorted input
+-- | Assume distinct & sorted input
 collapseIpBlocks :: [IpBlock Canonical] -> [IpBlock Canonical]
 collapseIpBlocks tomerge =
   skipOverlapped $ concat $ toList <$> go S.empty tomerge
