@@ -25,6 +25,7 @@ source-repository head
 common base                 { build-depends: base                 >= 4          && < 5      }
 
 common appar                { build-depends: appar                >= 0.1.8      && < 0.2    }
+common binary               { build-depends: binary               >= 0.8        && < 0.9    }
 common bytestring           { build-depends: bytestring           >= 0.10.6     && < 0.11   }
 common containers           { build-depends: containers           >= 0.6.0.1    && < 0.7    }
 common generic-lens         { build-depends: generic-lens         >= 1.1.0.0    && < 1.2    }
@@ -75,11 +76,14 @@ library
 
 executable hw-ip
   import:   base, config
+          , appar
+          , binary
           , bytestring
           , generic-lens
           , lens
           , optparse-applicative
           , semigroups
+          , text
   main-is:        Main.hs
   hs-source-dirs: app
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N -O2 -msse4.2
