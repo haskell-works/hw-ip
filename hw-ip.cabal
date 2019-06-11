@@ -21,7 +21,36 @@ source-repository head
     type: git
     location: https://github.com/haskell-works/hw-ip
 
+
+common base                 { build-depends: base                 >= 4          && < 5      }
+
+common appar                { build-depends: appar                >= 0.1.8      && < 0.2    }
+common bytestring           { build-depends: bytestring           >= 0.10.6     && < 0.11   }
+common containers           { build-depends: containers           >= 0.6.0.1    && < 0.7    }
+common generic-lens         { build-depends: generic-lens         >= 1.1.0.0    && < 1.2    }
+common hedgehog             { build-depends: hedgehog             >= 0.5.3      && < 0.7    }
+common hspec                { build-depends: hspec                >= 2.4.4      && < 2.6    }
+common hw-bits              { build-depends: hw-bits              >= 0.7        && < 0.8    }
+common hw-hspec-hedgehog    { build-depends: hw-hspec-hedgehog    >= 0.1.0.2    && < 0.2    }
+common iproute              { build-depends: iproute              >= 1.7.3      && < 1.8    }
+common lens                 { build-depends: lens                 >= 4          && < 5      }
+common optparse-applicative { build-depends: optparse-applicative >= 0.14       && < 0.15   }
+common text                 { build-depends: text                 >= 1.2.3.1    && < 1.3    }
+
+common semigroups   { if impl(ghc <  8    ) { build-depends: semigroups     >= 0.16     && < 0.19 } }
+
+common config
+  default-language: Haskell2010
+  ghc-options: -Wall
+
 library
+    import:   base, config
+            , appar
+            , containers
+            , generic-lens
+            , hw-bits
+            , iproute
+            , text
     exposed-modules:
       HaskellWorks.Data.Network.Ip
       HaskellWorks.Data.Network.Ip.Internal
@@ -43,16 +72,31 @@ library
       -Wredundant-constraints
       -O2
       -msse4.2
-    build-depends:
-        base            >= 4            && < 4.13
-      , appar           >= 0.1.7        && < 0.2
-      , containers
-      , generic-lens    >= 0.5.1.0      && < 1.2
-      , hw-bits         >= 0.7.0.2      && < 0.8
-      , iproute         >= 1.7.3        && < 1.8
-      , text            >= 1.2.2.2      && < 1.3
+
+executable hw-ip
+  import:   base, config
+          , bytestring
+          , generic-lens
+          , lens
+          , optparse-applicative
+          , semigroups
+  main-is:        Main.hs
+  hs-source-dirs: app
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N -O2 -msse4.2
+  build-depends:  hw-ip
+  other-modules:
+      App.Commands
+      App.Commands.TextToWord
 
 test-suite hw-ip-test
+    import:   base, config
+            , appar
+            , generic-lens
+            , hedgehog
+            , hspec
+            , hw-bits
+            , hw-hspec-hedgehog
+            , text
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     hs-source-dirs: test
@@ -75,13 +119,5 @@ test-suite hw-ip-test
       -threaded
       -rtsopts
       -with-rtsopts=-N
-    build-depends:
-        base              >= 4          && < 4.13
-      , appar
-      , generic-lens
-      , hedgehog          >= 0.5.3      && < 0.7
-      , hspec             >= 2.4.4      && < 2.6
-      , hw-bits
-      , hw-hspec-hedgehog >= 0.1.0.2    && < 0.2
-      , hw-ip
-      , text
+    build-depends:  hw-ip
+    build-tools:    hspec-discover
