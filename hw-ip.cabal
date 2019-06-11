@@ -1,6 +1,6 @@
 cabal-version: 2.2
 name: hw-ip
-version: 2.3.1.0
+version: 2.3.1.1
 license: BSD-3-Clause
 license-file: LICENSE
 copyright: 2018 John Ky, David Turnbull, Jian Wan
