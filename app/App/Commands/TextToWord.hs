@@ -6,16 +6,29 @@ module App.Commands.TextToWord
   ( cmdTextToWord
   ) where
 
-import Data.Semigroup      ((<>))
-import Options.Applicative hiding (columns)
+import Control.Lens
+import Data.Generics.Product.Any
+import Data.Maybe                (catMaybes)
+import Data.Semigroup            ((<>))
+import Options.Applicative       hiding (columns)
+import Text.Read
 
-import qualified App.Commands.Types as Z
+import qualified App.Commands.Types                as Z
+import qualified Data.Binary.Builder               as B
+import qualified Data.ByteString.Lazy              as LBS
+import qualified HaskellWorks.Data.Network.Ip.Ipv4 as IPv4
+import qualified System.IO                         as IO
 
 {-# ANN module ("HLint: ignore Reduce duplication"  :: String) #-}
 {-# ANN module ("HLint: ignore Redundant do"        :: String) #-}
 
 runTextToWord :: Z.TextToWordOptions -> IO ()
-runTextToWord _ = return ()
+runTextToWord opts = do
+  contents <- IO.readFile (opts ^. the @"input")
+  let as  = lines contents
+  let ips = catMaybes (fmap (readMaybe @IPv4.IpAddress) as)
+  let ws  = fmap (^. the @"word") ips
+  LBS.writeFile (opts ^. the @"output") (B.toLazyByteString (foldMap B.putWord32le ws))
 
 optsTextToWord :: Parser Z.TextToWordOptions
 optsTextToWord = Z.TextToWordOptions
