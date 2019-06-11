@@ -87,6 +87,7 @@ executable hw-ip
   other-modules:
       App.Commands
       App.Commands.TextToWord
+      App.Commands.Types
 
 test-suite hw-ip-test
     import:   base, config
