@@ -34,6 +34,7 @@ import Data.Bifunctor
 import Data.Foldable
 import Data.Semigroup                        ((<>))
 import Data.Word
+import Foreign.Storable
 import GHC.Generics
 import HaskellWorks.Data.Bits.BitWise
 import HaskellWorks.Data.Network.Ip.Range
@@ -48,7 +49,7 @@ import qualified Text.Appar.String                     as AP
 
 newtype IpAddress = IpAddress
   { word :: Word32
-  } deriving (Enum, Bounded, Eq, Ord, Generic, SafeEnum)
+  } deriving (Enum, Bounded, Eq, Ord, Generic, SafeEnum, Storable)
 
 instance Show IpAddress where
   showsPrec _ = showsIpAddress
