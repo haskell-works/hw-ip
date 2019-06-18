@@ -41,12 +41,12 @@ import HaskellWorks.Data.Network.Ip.Validity
 import Prelude                               hiding (words)
 import Text.Read
 
-import qualified Data.Bits                             as B
-import qualified Data.IP                               as D
-import qualified Data.Text                             as T
-import qualified HaskellWorks.Data.Network.Ip.Internal as I
-import qualified HaskellWorks.Data.Network.Ip.Ipv4     as V4
-import qualified HaskellWorks.Data.Network.Ip.Word128  as W
+import qualified Data.Bits                                   as B
+import qualified Data.IP                                     as D
+import qualified Data.Text                                   as T
+import qualified HaskellWorks.Data.Network.Ip.Internal.Appar as I
+import qualified HaskellWorks.Data.Network.Ip.Ipv4           as V4
+import qualified HaskellWorks.Data.Network.Ip.Word128        as W
 
 newtype IpAddress = IpAddress W.Word128 deriving (Enum, Eq, Ord, Bounded, Generic, SafeEnum)
 

@@ -53,7 +53,7 @@ library
           , text
   exposed-modules:
     HaskellWorks.Data.Network.Ip
-    HaskellWorks.Data.Network.Ip.Internal
+    HaskellWorks.Data.Network.Ip.Internal.Appar
     HaskellWorks.Data.Network.Ip.Ip
     HaskellWorks.Data.Network.Ip.Ipv4
     HaskellWorks.Data.Network.Ip.Ipv6
