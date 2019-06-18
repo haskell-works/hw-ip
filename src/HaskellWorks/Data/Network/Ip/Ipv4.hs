@@ -41,11 +41,11 @@ import HaskellWorks.Data.Network.Ip.Range
 import HaskellWorks.Data.Network.Ip.SafeEnum
 import HaskellWorks.Data.Network.Ip.Validity
 
-import qualified Data.Bits                             as B
-import qualified Data.Sequence                         as S
-import qualified Data.Text                             as T
-import qualified HaskellWorks.Data.Network.Ip.Internal as I
-import qualified Text.Appar.String                     as AP
+import qualified Data.Bits                                   as B
+import qualified Data.Sequence                               as S
+import qualified Data.Text                                   as T
+import qualified HaskellWorks.Data.Network.Ip.Internal.Appar as I
+import qualified Text.Appar.String                           as AP
 
 newtype IpAddress = IpAddress
   { word :: Word32

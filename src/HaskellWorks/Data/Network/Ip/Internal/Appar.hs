@@ -1,4 +1,20 @@
-module HaskellWorks.Data.Network.Ip.Internal where
+module HaskellWorks.Data.Network.Ip.Internal.Appar
+  ( fourOctetsToWord32
+  , (#<*>#)
+  , octet
+  , whitespace
+  , ipv4Address
+  , ipv4NetMask
+  , digit
+  , digits
+  , ipv4Block
+  , word32x4ToWords
+  , bitPower
+  , blockSize
+  , bitPower128
+  , blockSize128
+  , readsPrecOnParser
+  ) where
 
 import Control.Applicative
 import Control.Monad
