@@ -1,9 +1,11 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE MonoLocalBinds    #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 
 module HaskellWorks.Data.Network.Ip.Range where
 
+import Data.List                             (unfoldr)
 import GHC.Generics
 import HaskellWorks.Data.Network.Ip.SafeEnum
 import Prelude                               hiding (last)
@@ -33,3 +35,6 @@ class Contains a where
 
 instance Ord a => Contains (Range a) where
   contains l r = first l <= first r && last l >= last r
+
+rangeToList :: (SafeEnum a, Ord a) => Range a -> [a]
+rangeToList (Range a b) = takeWhile (<= b) $ unfoldr (\x -> (x,) <$> safeSucc x) a

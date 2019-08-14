@@ -11,6 +11,7 @@ module HaskellWorks.Data.Network.Ip.Ip
   , isCanonical
   , canonicalise
   , canonicaliseIpBlock
+  , blockToRange
   , firstIpAddress
   , lastIpAddress
   ) where
@@ -19,6 +20,7 @@ import Control.Monad
 import Data.Word
 import GHC.Generics
 import HaskellWorks.Data.Bits.BitWise
+import HaskellWorks.Data.Network.Ip.Range    (Range (..))
 import HaskellWorks.Data.Network.Ip.Validity
 import Text.Read
 
@@ -70,6 +72,10 @@ canonicalise (IpBlockV6 (V6.IpBlock a m)) = mfilter isCanonical (Just $ IpBlockV
 canonicaliseIpBlock :: IpBlock v -> IpBlock Canonical
 canonicaliseIpBlock (IpBlockV4 b) = IpBlockV4 (V4.canonicaliseIpBlock b)
 canonicaliseIpBlock (IpBlockV6 b) = IpBlockV6 (V6.canonicaliseIpBlock b)
+
+blockToRange :: IpBlock Canonical -> Range IpAddress
+blockToRange (IpBlockV4 b) = let Range s e = V4.blockToRange b in Range (IpAddressV4 s) (IpAddressV4 e)
+blockToRange (IpBlockV6 b) = let Range s e = V6.blockToRange b in Range (IpAddressV6 s) (IpAddressV6 e)
 
 firstIpAddress :: IpBlock Canonical -> (Word32, Word32, Word32, Word32)
 firstIpAddress (IpBlockV4 v4Block)                          = firstIpAddress (IpBlockV6 (V6.fromIpv4Block v4Block))
