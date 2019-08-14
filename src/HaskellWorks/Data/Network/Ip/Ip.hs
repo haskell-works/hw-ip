@@ -7,6 +7,7 @@
 module HaskellWorks.Data.Network.Ip.Ip
   ( IpBlock(..)
   , Unaligned, Canonical
+  , IpAddress(..)
   , isCanonical
   , canonicalise
   , canonicaliseIpBlock
@@ -27,9 +28,16 @@ import qualified HaskellWorks.Data.Network.Ip.Ipv6 as V6
 data IpBlock v = IpBlockV4 (V4.IpBlock v) | IpBlockV6 (V6.IpBlock v)
   deriving (Eq, Ord, Generic)
 
+data IpAddress = IpAddressV4 V4.IpAddress | IpAddressV6 V6.IpAddress
+  deriving (Eq, Ord, Generic)
+
 instance Show (IpBlock v) where
   showsPrec _ (IpBlockV4 a) = shows a
   showsPrec _ (IpBlockV6 a) = shows a
+
+instance Show IpAddress where
+  showsPrec _ (IpAddressV4 ip) = shows ip
+  showsPrec _ (IpAddressV6 ip) = shows ip
 
 instance Read (IpBlock Unaligned) where
   readsPrec _ s =
@@ -40,6 +48,15 @@ instance Read (IpBlock Unaligned) where
         case readMaybe s :: Maybe (V6.IpBlock Unaligned) of
           Just ipv6 -> [(IpBlockV6 ipv6, "")]
           Nothing   -> []
+
+instance Read IpAddress where
+  readsPrec _ s =
+    case readMaybe s :: Maybe V4.IpAddress of
+      Just ip -> [(IpAddressV4 ip, "")]
+      Nothing ->
+        case readMaybe s :: Maybe V6.IpAddress of
+          Just ip -> [(IpAddressV6 ip, "")]
+          Nothing -> []
 
 isCanonical :: IpBlock v -> Bool
 isCanonical (IpBlockV4 b) = V4.isCanonical b
