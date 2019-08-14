@@ -9,6 +9,7 @@ module HaskellWorks.Data.Network.Ip.Ipv4
   ( IpAddress(..)
   , IpNetMask(..)
   , IpBlock(..)
+  , Unaligned, Canonical
   , bitPower
   , isCanonical
   , splitBlock

@@ -10,6 +10,7 @@ module HaskellWorks.Data.Network.Ip.Ipv6
   ( IpAddress(..)
   , IpNetMask(..)
   , IpBlock(..)
+  , Unaligned, Canonical
   , fromIpv4
   , fromIpv4Block
   , fromV4

@@ -6,8 +6,10 @@
 
 module HaskellWorks.Data.Network.Ip.Ip
   ( IpBlock(..)
+  , Unaligned, Canonical
   , isCanonical
   , canonicalise
+  , canonicaliseIpBlock
   , firstIpAddress
   , lastIpAddress
   ) where
@@ -46,6 +48,11 @@ isCanonical (IpBlockV6 b) = V6.isCanonical b
 canonicalise :: IpBlock Unaligned -> Maybe (IpBlock Canonical)
 canonicalise (IpBlockV4 (V4.IpBlock a m)) = mfilter isCanonical (Just $ IpBlockV4 (V4.IpBlock a m))
 canonicalise (IpBlockV6 (V6.IpBlock a m)) = mfilter isCanonical (Just $ IpBlockV6 (V6.IpBlock a m))
+
+-- | Canonicalise the block by zero-ing out the host bits
+canonicaliseIpBlock :: IpBlock v -> IpBlock Canonical
+canonicaliseIpBlock (IpBlockV4 b) = IpBlockV4 (V4.canonicaliseIpBlock b)
+canonicaliseIpBlock (IpBlockV6 b) = IpBlockV6 (V6.canonicaliseIpBlock b)
 
 firstIpAddress :: IpBlock Canonical -> (Word32, Word32, Word32, Word32)
 firstIpAddress (IpBlockV4 v4Block)                          = firstIpAddress (IpBlockV6 (V6.fromIpv4Block v4Block))
