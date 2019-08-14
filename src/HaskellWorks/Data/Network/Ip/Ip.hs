@@ -21,6 +21,7 @@ import Data.Word
 import GHC.Generics
 import HaskellWorks.Data.Bits.BitWise
 import HaskellWorks.Data.Network.Ip.Range    (Range (..))
+import HaskellWorks.Data.Network.Ip.SafeEnum
 import HaskellWorks.Data.Network.Ip.Validity
 import Text.Read
 
@@ -59,6 +60,13 @@ instance Read IpAddress where
         case readMaybe s :: Maybe V6.IpAddress of
           Just ip -> [(IpAddressV6 ip, "")]
           Nothing -> []
+
+instance SafeEnum IpAddress where
+  safePred (IpAddressV4 ip) = IpAddressV4 <$> safePred ip
+  safePred (IpAddressV6 ip) = IpAddressV6 <$> safePred ip
+
+  safeSucc (IpAddressV4 ip) = IpAddressV4 <$> safeSucc ip
+  safeSucc (IpAddressV6 ip) = IpAddressV6 <$> safeSucc ip
 
 isCanonical :: IpBlock v -> Bool
 isCanonical (IpBlockV4 b) = V4.isCanonical b
