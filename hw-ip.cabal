@@ -96,6 +96,7 @@ test-suite hw-ip-test
   other-modules:
     HaskellWorks.Data.Network.Gen
     HaskellWorks.Data.Network.IpBlockSpec
+    HaskellWorks.Data.Network.IpSpec
     HaskellWorks.Data.Network.Ipv4Spec
     HaskellWorks.Data.Network.Ipv6Spec
     HaskellWorks.Data.Network.RangeSpec
