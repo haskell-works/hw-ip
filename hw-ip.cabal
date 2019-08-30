@@ -61,9 +61,9 @@ library
     HaskellWorks.Data.Network.Ip.SafeEnum
     HaskellWorks.Data.Network.Ip.Validity
     HaskellWorks.Data.Network.Ip.Word128
-  hs-source-dirs:     src
-  other-modules:      Paths_hw_ip
-  autogen-modules:    Paths_hw_ip
+  hs-source-dirs:       src
+  other-modules:        Paths_hw_ip
+  autogen-modules:      Paths_hw_ip
 
 executable hw-ip
   import:   base, config
@@ -79,10 +79,10 @@ executable hw-ip
     App.Commands
     App.Commands.TextToWord
     App.Commands.Types
-  main-is:            Main.hs
-  hs-source-dirs:     app
-  ghc-options:        -threaded -rtsopts -with-rtsopts=-N
-  build-depends:      hw-ip
+  main-is:              Main.hs
+  hs-source-dirs:       app
+  ghc-options:          -threaded -rtsopts -with-rtsopts=-N
+  build-depends:        hw-ip
 
 test-suite hw-ip-test
   import:   base, config
@@ -101,9 +101,9 @@ test-suite hw-ip-test
     HaskellWorks.Data.Network.Ipv6Spec
     HaskellWorks.Data.Network.RangeSpec
     HaskellWorks.Data.Network.Word128Spec
-  type:               exitcode-stdio-1.0
-  main-is:            Spec.hs
-  hs-source-dirs:     test
-  ghc-options:        -threaded -rtsopts -with-rtsopts=-N
-  build-depends:      hw-ip
-  build-tools:        hspec-discover
+  type:                 exitcode-stdio-1.0
+  main-is:              Spec.hs
+  hs-source-dirs:       test
+  ghc-options:          -threaded -rtsopts -with-rtsopts=-N
+  build-depends:        hw-ip
+  build-tool-depends:   hspec-discover:hspec-discover
