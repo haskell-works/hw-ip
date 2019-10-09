@@ -6,7 +6,6 @@ module HaskellWorks.Data.Network.Ipv4Spec (spec) where
 import HaskellWorks.Data.Network.Ip.Internal.Appar
 import HaskellWorks.Data.Network.Ip.Ipv4
 import HaskellWorks.Data.Network.Ip.Range
-import HaskellWorks.Data.Network.Ip.Validity
 import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Test.Hspec
