@@ -165,7 +165,7 @@ parseCanonicalIpBlock = do
 splitIpRange :: Range IpAddress -> (IpBlock Canonical, Maybe (Range IpAddress))
 splitIpRange (Range (IpAddress a) (IpAddress z)) = (block, remainder)
   where bpOuter   = width - B.countLeadingZeros (z + 1 - a) - 1
-        bpInner   = B.countTrailingZeros ((maxBound .<. fromIntegral bpOuter) .|. a)
+        bpInner   = B.countTrailingZeros ((maxBound .<. (fromIntegral bpOuter .&. 0x7f)) .|. a)
         block     = IpBlock (IpAddress a) (IpNetMask (fromIntegral (width - bpInner)))
         hostMask  = comp (maxBound .<. fromIntegral bpInner)
         remainder = if a + hostMask >= z
