@@ -1,5 +1,6 @@
 module App.Commands where
 
+import App.Commands.RangeStats
 import App.Commands.TextToWord
 import Data.Semigroup          ((<>))
 import Options.Applicative
@@ -11,3 +12,4 @@ commandsGeneral :: Parser (IO ())
 commandsGeneral = subparser $ mempty
   <>  commandGroup "Commands:"
   <>  cmdTextToWord
+  <>  cmdRangeStats
