@@ -76,6 +76,7 @@ executable hw-ip
                       , semigroups
                       , text
   other-modules:        App.Commands
+                        App.Commands.RangeStats
                         App.Commands.TextToWord
                         App.Commands.Types
   main-is:              Main.hs
