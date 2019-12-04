@@ -102,6 +102,13 @@ spec = describe "HaskellWorks.Data.Network.Ipv4Spec" $ do
       let ipblocks3 = read @(IpBlock Canonical) <$> ["1.2.3.3/32", "1.2.3.0/32", "1.2.3.1/32", "1.2.3.2/32", "5.5.5.5/32"]
       collapseIpBlocks (DL.sort ipblocks3) === (read @(IpBlock Canonical) <$> ["1.2.3.0/30", "5.5.5.5/32"])
 
+    it "words and ip should round trip" $ requireTest $ do
+      a <- forAll $ G.word8 R.constantBounded
+      b <- forAll $ G.word8 R.constantBounded
+      c <- forAll $ G.word8 R.constantBounded
+      d <- forAll $ G.word8 R.constantBounded
+      ipAddressToWords (wordsToIpAddress a b c d) === (a, b, c, d)
+
   describe "should split ranges" $ do
     it "0.0.0.0 - 0.0.0.0" $ requireTest $ do
       let ip1 = read "0.0.0.0" :: I.IpAddress
