@@ -19,6 +19,7 @@ module HaskellWorks.Data.Network.Ip.Ipv4
   , showsIpAddress
   , tshowIpAddress
   , tshowIpBlock
+  , wordsToIpAddress
   , ipAddressToWords
   , firstIpAddress
   , lastIpAddress
@@ -135,6 +136,13 @@ showIpBlock ipBlock = showsIpBlock ipBlock ""
 
 tshowIpBlock :: IpBlock v -> T.Text
 tshowIpBlock = T.pack . showIpBlock
+
+wordsToIpAddress :: Word8 -> Word8 -> Word8 -> Word8 -> IpAddress
+wordsToIpAddress a b c d = IpAddress $
+  ( fromIntegral a .<. 24) .|.
+  ( fromIntegral b .<. 16) .|.
+  ( fromIntegral c .<.  8) .|.
+    fromIntegral d
 
 ipAddressToWords :: IpAddress -> (Word8, Word8, Word8, Word8)
 ipAddressToWords (IpAddress w) =
