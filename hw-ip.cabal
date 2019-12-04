@@ -92,7 +92,6 @@ library hw-ip-gen
   exposed-modules:      HaskellWorks.Data.Network.Gen
   hs-source-dirs:       gen
   build-depends:        hw-ip
-  visibility:           public
 
 test-suite hw-ip-test
   import:               base, config
