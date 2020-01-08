@@ -13,6 +13,8 @@ module HaskellWorks.Data.Network.Ip.Ipv6
   , Unaligned, Canonical
   , fromIpv4
   , fromIpv4Block
+  , isIpv4Block
+  , toIpv4Block
   , fromV4
   , parseIpBlock
   , masksIp
@@ -48,6 +50,7 @@ import qualified Data.Text                                   as T
 import qualified HaskellWorks.Data.Network.Ip.Internal.Appar as I
 import qualified HaskellWorks.Data.Network.Ip.Ipv4           as V4
 import qualified HaskellWorks.Data.Network.Ip.Word128        as W
+import qualified Text.Appar.String                           as AP
 
 newtype IpAddress = IpAddress W.Word128 deriving (Enum, Eq, Ord, Bounded, Generic, SafeEnum)
 
@@ -56,10 +59,16 @@ instance Show IpAddress where
 
 instance Read IpAddress where
   readsPrec :: Int -> String -> [(IpAddress, String)]
-  readsPrec _ s =
+  readsPrec p s =
     case readMaybe s :: Maybe D.IPv6 of
       Just ip -> [(IpAddress (D.toHostAddress6 ip), "")]
-      Nothing -> []
+      Nothing -> I.readsPrecOnParser (AP.try parse6052IpAddress) p s
+
+-- Data.IP doesn't support this encoding, so we have to do it ourselves. It's pretty unambiguous.
+parse6052IpAddress :: AP.Parser IpAddress
+parse6052IpAddress = do
+  _ <- AP.string "::ffff:"
+  fromIpv4 <$> V4.parseIpAddress
 
 newtype IpNetMask = IpNetMask
   { word :: Word8
@@ -165,6 +174,18 @@ fromIpv4Block (V4.IpBlock b m) =
 
 fromIpv4 :: V4.IpAddress -> IpAddress
 fromIpv4 (V4.IpAddress w32) = IpAddress (0, 0, 0xFFFF, w32)
+
+isIpv4Block :: IpBlock v -> Bool
+isIpv4Block (IpBlock (IpAddress (a, b, c, _)) _) = a == 0 && b == 0 && c == 0xffff
+
+toIpv4Block :: IpBlock v -> Maybe (V4.IpBlock v)
+toIpv4Block b@(IpBlock (IpAddress (_, _, _, d)) (IpNetMask m))
+  | isIpv4Block b =
+    let v4Addr = V4.IpAddress d
+        v4Mask = V4.IpNetMask (m - 96)
+    in pure $ V4.IpBlock v4Addr v4Mask
+  | otherwise = Nothing
+
 
 canonicaliseIpBlock :: IpBlock v -> IpBlock Canonical
 canonicaliseIpBlock (IpBlock (IpAddress w) (IpNetMask m))
