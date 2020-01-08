@@ -113,3 +113,15 @@ spec = describe "HaskellWorks.Data.Network.Ipv6Spec" $ do
     it "::100 - ::200" $ requireTest $ do
       V6.rangeToBlocksDL (R.Range (V6.IpAddress 0x100) (V6.IpAddress 0x200)) [] === [ V6.IpBlock (V6.IpAddress 0x100) (V6.IpNetMask 120)
                                                                                      , V6.IpBlock (V6.IpAddress 0x200) (V6.IpNetMask 128)]
+
+  describe "should handle 4-in-6 encoding" $ do
+    it "::ffff:10.43.52.11/128" $ requireTest $ do
+      read "::ffff:10.43.52.11/128" === V6.IpBlock @Unaligned (V6.IpAddress (0,0,0xffff,0x0a2b340b)) (V6.IpNetMask 128)
+
+  describe "should be able to detect 4-in-6 encoded addresses" $ do
+    it "::ffff:10.43.52.11/128" $ requireTest $ do
+      V6.isIpv4Block (read "::ffff:10.43.52.11/128" :: V6.IpBlock Unaligned) === True
+
+  describe "should be able to convert 4-in-6 encoded addresses to ipv4" $ do
+    it "::ffff:10.43.52.11/128" $ requireTest $ do
+      V6.toIpv4Block (read "::ffff:10.43.52.11/128") === Just (V4.IpBlock @Unaligned (V4.IpAddress 0x0a2b340b) (V4.IpNetMask 32))
