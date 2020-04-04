@@ -14,7 +14,7 @@ bug-reports:            https://github.com/haskell-works/hw-ip/issues
 synopsis:               Library for manipulating IP addresses and CIDR blocks
 description:            Library for manipulating IP addresses and CIDR blocks. Please see README.md
 category:               Network
-tested-with:            GHC == 8.8.1, GHC == 8.6.5, GHC == 8.4.4, GHC == 8.2.2
+tested-with:            GHC == 8.8.3, GHC == 8.6.5, GHC == 8.4.4, GHC == 8.2.2
 build-type:             Simple
 extra-source-files:     README.md
 
