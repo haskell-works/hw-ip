@@ -34,7 +34,6 @@ module HaskellWorks.Data.Network.Ip.Ipv4
 import Control.Applicative                   ((<|>))
 import Data.Bifunctor
 import Data.Foldable
-import Data.Semigroup                        ((<>))
 import Data.Word
 import Foreign.Storable
 import GHC.Generics

@@ -9,7 +9,6 @@ module App.Commands.TextToWord
 import Control.Lens
 import Data.Generics.Product.Any
 import Data.Maybe                (catMaybes)
-import Data.Semigroup            ((<>))
 import Options.Applicative       hiding (columns)
 import Text.Read
 
