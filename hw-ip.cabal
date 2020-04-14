@@ -1,7 +1,7 @@
 cabal-version: 2.4
 
 name:                   hw-ip
-version:                2.4.1.0
+version:                2.4.2.0
 license:                BSD-3-Clause
 license-file:           LICENSE
 copyright:              2018-2020 John Ky
