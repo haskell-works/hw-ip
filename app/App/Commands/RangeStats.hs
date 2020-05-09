@@ -15,8 +15,8 @@ import qualified HaskellWorks.Data.Network.Ip.Ipv4  as IPv4
 import qualified HaskellWorks.Data.Network.Ip.Range as R
 import qualified Text.Appar.String                  as AP
 
-{-# ANN module ("HLint: ignore Reduce duplication"  :: String) #-}
-{-# ANN module ("HLint: ignore Redundant do"        :: String) #-}
+{- HLINT ignore "Redundant do"        -}
+{- HLINT ignore "Reduce duplication"  -}
 
 runRangeStats :: Z.RangeStatsOptions -> IO ()
 runRangeStats opts =
