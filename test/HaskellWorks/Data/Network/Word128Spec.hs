@@ -9,7 +9,7 @@ import Test.Hspec
 import qualified Data.Bits                            as B
 import qualified HaskellWorks.Data.Network.Ip.Word128 as W
 
-{-# ANN module ("HLint: ignore Redundant do"  :: String) #-}
+{- HLINT ignore "Redundant do"        -}
 
 spec :: Spec
 spec = describe "HaskellWorks.Data.Network.Ipv6Spec" $ do

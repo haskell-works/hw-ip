@@ -11,7 +11,7 @@ import Test.Hspec
 import qualified HaskellWorks.Data.Network.Ip.Ip   as V
 import qualified HaskellWorks.Data.Network.Ip.Ipv6 as V6
 
-{-# ANN module ("HLint: ignore Redundant do"  :: String) #-}
+{- HLINT ignore "Redundant do"        -}
 
 spec :: Spec
 spec = describe "HaskellWorks.Data.Network.IpSpec" $ do

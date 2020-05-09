@@ -18,8 +18,8 @@ import qualified Data.ByteString.Lazy              as LBS
 import qualified HaskellWorks.Data.Network.Ip.Ipv4 as IPv4
 import qualified System.IO                         as IO
 
-{-# ANN module ("HLint: ignore Reduce duplication"  :: String) #-}
-{-# ANN module ("HLint: ignore Redundant do"        :: String) #-}
+{- HLINT ignore "Redundant do"        -}
+{- HLINT ignore "Reduce duplication"  -}
 
 runTextToWord :: Z.TextToWordOptions -> IO ()
 runTextToWord opts = do

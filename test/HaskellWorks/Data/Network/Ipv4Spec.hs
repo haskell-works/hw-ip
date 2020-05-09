@@ -19,7 +19,7 @@ import qualified Hedgehog.Gen                                as G
 import qualified Hedgehog.Range                              as R
 import qualified Text.Appar.String                           as AP
 
-{-# ANN module ("HLint: ignore Redundant do"  :: String) #-}
+{- HLINT ignore "Redundant do"        -}
 
 spec :: Spec
 spec = describe "HaskellWorks.Data.Network.Ipv4Spec" $ do
