@@ -37,7 +37,7 @@ common hw-bits                    { build-depends: hw-bits                    >=
 common hw-hspec-hedgehog          { build-depends: hw-hspec-hedgehog          >= 0.1.0.2    && < 0.2    }
 common iproute                    { build-depends: iproute                    >= 1.7.3      && < 1.8    }
 common lens                       { build-depends: lens                       >= 4          && < 5      }
-common optparse-applicative       { build-depends: optparse-applicative       >= 0.14       && < 0.16   }
+common optparse-applicative       { build-depends: optparse-applicative       >= 0.14       && < 0.17   }
 common text                       { build-depends: text                       >= 1.2.3.1    && < 1.3    }
 
 common config
