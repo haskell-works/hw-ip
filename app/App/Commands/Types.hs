@@ -16,6 +16,6 @@ data TextToWordOptions = TextToWordOptions
   , output :: FilePath
   } deriving (Eq, Show, Generic)
 
-data RangeStatsOptions = RangeStatsOptions
+newtype RangeStatsOptions = RangeStatsOptions
   { range  :: R.Range IPv4.IpAddress
   } deriving (Eq, Show, Generic)
