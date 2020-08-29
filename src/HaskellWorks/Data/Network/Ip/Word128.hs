@@ -1,8 +1,6 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE InstanceSigs          #-}
-{-# LANGUAGE TypeSynonymInstances  #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module HaskellWorks.Data.Network.Ip.Word128 where
@@ -44,9 +42,9 @@ word128ToInteger (a, b, c, d) = let a' = fromIntegral a `B.shift` 96
                                 in a' B..|. b' B..|. c' B..|. d' :: Integer
 
 instance Num Word128 where
-  (+) l r     = integerToWord128 $ (word128ToInteger l) + (word128ToInteger r)
-  (-) l r     = integerToWord128 $ (word128ToInteger l) - (word128ToInteger r)
-  (*) l r     = integerToWord128 $ (word128ToInteger l) * (word128ToInteger r)
+  (+) l r     = integerToWord128 $ word128ToInteger l + word128ToInteger r
+  (-) l r     = integerToWord128 $ word128ToInteger l - word128ToInteger r
+  (*) l r     = integerToWord128 $ word128ToInteger l * word128ToInteger r
   abs a       = a
   signum (0, 0, 0, 0) = minBound
   signum _            = 1
