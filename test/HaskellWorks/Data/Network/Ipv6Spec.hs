@@ -5,6 +5,7 @@ module HaskellWorks.Data.Network.Ipv6Spec (spec) where
 
 import HaskellWorks.Data.Network.Ip.SafeEnum
 import HaskellWorks.Data.Network.Ip.Validity
+import HaskellWorks.Data.Network.Unsafe      (unsafeShow)
 import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Test.Hspec
@@ -21,13 +22,13 @@ import qualified HaskellWorks.Data.Network.Ip.Range as IR
 import qualified Hedgehog.Gen   as G
 import qualified Hedgehog.Range as R
 
-{- HLINT ignore "Redundant do"        -}
+{- HLINT ignore "Redundant do"              -}
 
 spec :: Spec
 spec = describe "HaskellWorks.Data.Network.Ipv6Spec" $ do
   describe "V6.IpBlock" $ do
     it "should implement show" $ requireTest $ do
-      show (V6.IpBlock (V6.IpAddress (3, 3, 3, 0)) (V6.IpNetMask 96)) === "0:3:0:3:0:3::/96"
+      unsafeShow (V6.IpBlock (V6.IpAddress (3, 3, 3, 0)) (V6.IpNetMask 96)) === "0:3:0:3:0:3::/96"
 
     it "should implement firstAddress/lastAddress" $ requireTest $ do
       V.firstIpAddress (V.IpBlockV4 (V4.IpBlock (V4.IpAddress   0xff000000) (V4.IpNetMask  8)))  === (0, 0, 0xFFFF, 0xFF000000)
@@ -48,7 +49,7 @@ spec = describe "HaskellWorks.Data.Network.Ipv6Spec" $ do
       a <- forAll $ G.word32 R.constantBounded
       m <- forAll $ G.word8 $ R.linear 0 128
       let addr = V6.IpBlock (V6.IpAddress (a, 0, 0, 0)) (V6.IpNetMask m)
-      V6.parseIpBlock (T.pack (show addr)) === Right addr
+      V6.parseIpBlock (T.pack (unsafeShow addr)) === Right addr
 
     it "should support enum" $ require $ property $ do
       boundedPred (V6.IpAddress (32, 32, 32, 32)) === V6.IpAddress (32, 32, 32, 31)

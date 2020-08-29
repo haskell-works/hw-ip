@@ -8,7 +8,7 @@ module App.Commands.TextToWord
 
 import Control.Lens
 import Data.Generics.Product.Any
-import Data.Maybe                (catMaybes)
+import Data.Maybe                (mapMaybe)
 import Options.Applicative       hiding (columns)
 import Text.Read
 
@@ -25,7 +25,7 @@ runTextToWord :: Z.TextToWordOptions -> IO ()
 runTextToWord opts = do
   contents <- IO.readFile (opts ^. the @"input")
   let as  = lines contents
-  let ips = catMaybes (fmap (readMaybe @IPv4.IpAddress) as)
+  let ips = mapMaybe (readMaybe @IPv4.IpAddress) as
   let ws  = fmap (^. the @"word") ips
   LBS.writeFile (opts ^. the @"output") (B.toLazyByteString (foldMap B.putWord32le ws))
 

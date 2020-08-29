@@ -4,6 +4,7 @@
 module HaskellWorks.Data.Network.IpBlockSpec (spec) where
 
 import HaskellWorks.Data.Network.Ip.Validity
+import HaskellWorks.Data.Network.Unsafe
 import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Test.Hspec
@@ -17,7 +18,7 @@ spec :: Spec
 spec = describe "HaskellWorks.Data.Network.IpSpec" $ do
   describe "IpBlock" $ do
     it "should implement show" $ requireTest $ do
-      show (V.IpBlockV6 @Unaligned (V6.IpBlock (V6.IpAddress (3, 3, 3, 0)) (V6.IpNetMask 96))) === "0:3:0:3:0:3::/96"
+      unsafeShow (V.IpBlockV6 @Unaligned (V6.IpBlock (V6.IpAddress (3, 3, 3, 0)) (V6.IpNetMask 96))) === "0:3:0:3:0:3::/96"
 
     it "should implement read" $ requireTest $ do
       read "1:2:3:4::/127"  === V.IpBlockV6 @Unaligned (V6.IpBlock (V6.IpAddress (0x10002    , 0x30004 , 0, 0)) (V6.IpNetMask 127))

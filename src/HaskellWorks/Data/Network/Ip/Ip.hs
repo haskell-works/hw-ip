@@ -1,7 +1,6 @@
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE OverloadedStrings     #-}
 
 module HaskellWorks.Data.Network.Ip.Ip
@@ -27,6 +26,8 @@ import Text.Read
 
 import qualified HaskellWorks.Data.Network.Ip.Ipv4 as V4
 import qualified HaskellWorks.Data.Network.Ip.Ipv6 as V6
+
+{- HLINT ignore "Use head" -}
 
 data IpBlock v = IpBlockV4 (V4.IpBlock v) | IpBlockV6 (V6.IpBlock v)
   deriving (Eq, Ord, Generic)

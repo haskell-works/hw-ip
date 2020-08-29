@@ -6,6 +6,7 @@ module HaskellWorks.Data.Network.Ipv4Spec (spec) where
 import HaskellWorks.Data.Network.Ip.Internal.Appar
 import HaskellWorks.Data.Network.Ip.Ipv4
 import HaskellWorks.Data.Network.Ip.Range
+import HaskellWorks.Data.Network.Unsafe
 import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import Test.Hspec
@@ -26,14 +27,14 @@ spec = describe "HaskellWorks.Data.Network.Ipv4Spec" $ do
   describe "octet" $ do
     it "should go from 0-255" $ require $ property $ do
       b <- forAll $ G.word8 R.constantBounded
-      AP.runParser octet (show b) === (Just b, "")
+      AP.runParser octet (unsafeShow b) === (Just b, "")
 
   describe "I.IpAddress" $ do
     it "should implement show" $ requireTest $ do
-      show (I.IpAddress 0x000000ff) === "0.0.0.255"
-      show (I.IpAddress 0x0000ff00) === "0.0.255.0"
-      show (I.IpAddress 0x00ff0000) === "0.255.0.0"
-      show (I.IpAddress 0xff000000) === "255.0.0.0"
+      unsafeShow (I.IpAddress 0x000000ff) === "0.0.0.255"
+      unsafeShow (I.IpAddress 0x0000ff00) === "0.0.255.0"
+      unsafeShow (I.IpAddress 0x00ff0000) === "0.255.0.0"
+      unsafeShow (I.IpAddress 0xff000000) === "255.0.0.0"
 
     it "should implement read" $ requireTest $ do
       read "1.2.3.4"      === I.IpAddress 0x01020304
@@ -46,24 +47,24 @@ spec = describe "HaskellWorks.Data.Network.Ipv4Spec" $ do
 
   describe "I.IpBlock" $ do
     it "should implement show" $ requireTest $ do
-      show (I.IpBlock (I.IpAddress 0x000000ff) (I.IpNetMask 32)) === "0.0.0.255/32"
-      show (I.IpBlock (I.IpAddress 0x0000ff00) (I.IpNetMask 32)) === "0.0.255.0/32"
-      show (I.IpBlock (I.IpAddress 0x00ff0000) (I.IpNetMask 32)) === "0.255.0.0/32"
-      show (I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 32)) === "255.0.0.0/32"
-      show (I.IpBlock (I.IpAddress 0x000000ff) (I.IpNetMask 16)) === "0.0.0.255/16"
-      show (I.IpBlock (I.IpAddress 0x0000ff00) (I.IpNetMask 16)) === "0.0.255.0/16"
-      show (I.IpBlock (I.IpAddress 0x00ff0000) (I.IpNetMask 16)) === "0.255.0.0/16"
-      show (I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 16)) === "255.0.0.0/16"
-      show (I.firstIpAddress $ I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 8))  === "255.0.0.0"
-      show (I.lastIpAddress  $ I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 8))  === "255.255.255.255"
-      show (I.firstIpAddress $ I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 16)) === "255.0.0.0"
-      show (I.lastIpAddress  $ I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 16)) === "255.0.255.255"
-      show (I.firstIpAddress $ I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 24)) === "255.0.0.0"
-      show (I.lastIpAddress  $ I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 24)) === "255.0.0.255"
-      show (I.firstIpAddress $ I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 32)) === "255.0.0.0"
-      show (I.lastIpAddress  $ I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 32)) === "255.0.0.0"
-      show (I.firstIpAddress $ I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 21)) === "255.0.0.0"
-      show (I.lastIpAddress  $ I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 21)) === "255.0.7.255"
+      unsafeShow (I.IpBlock (I.IpAddress 0x000000ff) (I.IpNetMask 32)) === "0.0.0.255/32"
+      unsafeShow (I.IpBlock (I.IpAddress 0x0000ff00) (I.IpNetMask 32)) === "0.0.255.0/32"
+      unsafeShow (I.IpBlock (I.IpAddress 0x00ff0000) (I.IpNetMask 32)) === "0.255.0.0/32"
+      unsafeShow (I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 32)) === "255.0.0.0/32"
+      unsafeShow (I.IpBlock (I.IpAddress 0x000000ff) (I.IpNetMask 16)) === "0.0.0.255/16"
+      unsafeShow (I.IpBlock (I.IpAddress 0x0000ff00) (I.IpNetMask 16)) === "0.0.255.0/16"
+      unsafeShow (I.IpBlock (I.IpAddress 0x00ff0000) (I.IpNetMask 16)) === "0.255.0.0/16"
+      unsafeShow (I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 16)) === "255.0.0.0/16"
+      unsafeShow (I.firstIpAddress $ I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 8))  === "255.0.0.0"
+      unsafeShow (I.lastIpAddress  $ I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 8))  === "255.255.255.255"
+      unsafeShow (I.firstIpAddress $ I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 16)) === "255.0.0.0"
+      unsafeShow (I.lastIpAddress  $ I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 16)) === "255.0.255.255"
+      unsafeShow (I.firstIpAddress $ I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 24)) === "255.0.0.0"
+      unsafeShow (I.lastIpAddress  $ I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 24)) === "255.0.0.255"
+      unsafeShow (I.firstIpAddress $ I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 32)) === "255.0.0.0"
+      unsafeShow (I.lastIpAddress  $ I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 32)) === "255.0.0.0"
+      unsafeShow (I.firstIpAddress $ I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 21)) === "255.0.0.0"
+      unsafeShow (I.lastIpAddress  $ I.IpBlock (I.IpAddress 0xff000000) (I.IpNetMask 21)) === "255.0.7.255"
 
     it "should implement read" $ requireTest $ do
       read "1.0.0.0/8"  === I.IpBlock @Unaligned (I.IpAddress 0x01000000) (I.IpNetMask 8)
