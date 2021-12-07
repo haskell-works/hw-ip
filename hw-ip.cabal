@@ -106,7 +106,6 @@ test-suite hw-ip-test
                       , hw-bits
                       , hw-hspec-hedgehog
                       , hw-ip
-                      , hw-ip-gen
                       , text
   other-modules:        HaskellWorks.Data.Network.IpBlockSpec
                         HaskellWorks.Data.Network.IpSpec
@@ -115,9 +114,15 @@ test-suite hw-ip-test
                         HaskellWorks.Data.Network.RangeSpec
                         HaskellWorks.Data.Network.Unsafe
                         HaskellWorks.Data.Network.Word128Spec
+
+                        -- Because stack can't generate haddock otherwise
+                        HaskellWorks.Data.Network.Gen
+
   type:                 exitcode-stdio-1.0
   main-is:              Spec.hs
   hs-source-dirs:       test
+                        -- Because stack can't generate haddock otherwise
+                      , gen
   ghc-options:          -threaded -rtsopts -with-rtsopts=-N
   build-tool-depends:   hspec-discover:hspec-discover
 
