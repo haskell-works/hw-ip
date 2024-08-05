@@ -1,4 +1,4 @@
-name: Binaries
+name: Haskell CI
 
 defaults:
   run:
@@ -17,58 +17,88 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ghc: ["9.8.1", "9.6.3", "9.4.8", "9.2.8", "9.0.2", "8.10.7"]
-        os: [ubuntu-latest, macOS-latest, windows-latest]
+        cabal: ["3.12"]
+        ghc: ["9.8.1", "9.6.3", "9.4.8"]
+        os: [ubuntu-latest, windows-latest]
+
+        include:
+          # Using include, to make sure there will only be one macOS job, even if the matrix gets expanded later on.
+          # We want a single job, because macOS runners are scarce.
+          - ghc: "9.6.3"
+            cabal: "3.12"
+            os: macos-latest
 
     env:
       # Modify this value to "invalidate" the cabal cache.
-      CABAL_CACHE_VERSION: "2024-01-05"
+      CABAL_CACHE_VERSION: "2024-08-05"
 
     steps:
-      - uses: actions/checkout@v2
 
-      - uses: haskell-actions/setup@v2
-        id: setup-haskell
-        with:
-          ghc-version: ${{ matrix.ghc }}
-          cabal-version: '3.10.2.1'
+    - name: Install Haskell
+      uses: input-output-hk/actions/haskell@latest
+      id: setup-haskell
+      with:
+        ghc-version: ${{ matrix.ghc }}
+        cabal-version: ${{ matrix.cabal }}
 
-      - name: Set some window specific things
-        if: matrix.os == 'windows-latest'
-        run: echo 'EXE_EXT=.exe' >> $GITHUB_ENV
+    # - name: Install system dependencies
+    #   uses: input-output-hk/actions/base@latest
+    #   with:
+    #     use-sodium-vrf: true # default is true
 
-      - name: Configure project
-        run: |
-          cabal configure --enable-tests --enable-benchmarks --write-ghc-environment-files=ghc8.4.4+
-          cabal build all --enable-tests --enable-benchmarks --dry-run
+    - uses: actions/checkout@v4
 
-      - name: Cabal cache over S3
-        uses: action-works/cabal-cache-s3@v1
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        with:
-          region: us-west-2
-          dist-dir: dist-newstyle
-          store-path: ${{ steps.setup-haskell.outputs.cabal-store }}
-          threads: 16
-          archive-uri: ${{ secrets.BINARY_CACHE_URI }}/${{ env.CABAL_CACHE_VERSION }}/${{ runner.os }}/${{ matrix.cabal }}/${{ matrix.ghc }}
-          skip: "${{ secrets.BINARY_CACHE_URI == '' }}"
+    - name: Cabal update
+      run: cabal update
 
-      - name: Cabal cache over HTTPS
-        uses: action-works/cabal-cache-s3@v1
-        with:
-          dist-dir: dist-newstyle
-          store-path: ${{ steps.setup-haskell.outputs.cabal-store }}
-          threads: 16
-          archive-uri: https://cache.haskellworks.io/${{ env.CABAL_CACHE_VERSION }}/${{ runner.os }}/${{ matrix.cabal }}/${{ matrix.ghc }}
-          skip: "${{ secrets.BINARY_CACHE_URI != '' }}"
+    - name: Configure build
+      run: |
+        cabal configure --enable-tests --enable-benchmarks
+        cabal build all --enable-tests --enable-benchmarks --dry-run
 
-      - name: Build
-        run: cabal build all --enable-tests --enable-benchmarks
+    - name: Record dependencies
+      run: |
+        cat dist-newstyle/cache/plan.json | jq -r '."install-plan"[].id' | sort | uniq > dependencies.txt
+        date +"%Y-%m-%d" > date.txt
 
-      - name: Test
-        run: cabal test all --enable-tests --enable-benchmarks
+    - name: View dependencies
+      run: |
+        echo "date                  = $(cat date.txt)"
+        echo "md5(dependencies.txt) = $(md5sum dependencies.txt)"
+        echo "md5(date.txt)         = $(md5sum date.txt)"
+
+    - name: Upload dependencies.txt
+      uses: actions/upload-artifact@v2
+      with:
+        name: dependencies
+        path: dependencies.txt
+
+    - uses: actions/cache@v4
+      name: Cache cabal store
+      with:
+        path: ${{ steps.setup-haskell.outputs.cabal-store }}
+        key: cache-${{ env.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('dependencies.txt') }}-${{ hashFiles('date.txt') }}
+        restore-keys: |
+          cache-${{ env.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('dependencies.txt') }}-${{ hashFiles('date.txt') }}
+          cache-${{ env.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('dependencies.txt') }}
+          cache-${{ env.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.ghc }}
+
+    # Now we install the dependencies. If the cache was found and restored in the previous step,
+    # this should be a no-op, but if the cache key was not found we need to build stuff so we can
+    # cache it for the next step.
+    - name: Install dependencies
+      run: cabal build all --enable-tests --only-dependencies -j --ghc-option=-j4
+
+    # Now we build.
+    - name: Build all
+      run: cabal build all --enable-tests
+
+    - name: Run tests
+      env:
+        TMPDIR: ${{ runner.temp }}
+        TMP: ${{ runner.temp }}
+        KEEP_WORKSPACE: 1
+      run: cabal test all --enable-tests --enable-benchmarks
 
   check:
     needs: build
